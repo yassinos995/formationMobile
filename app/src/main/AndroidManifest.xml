@@ -16,6 +16,12 @@
         android:theme="@style/Theme.Proform"
         tools:targetApi="31">
         <activity
+            android:name=".TicketElectric"
+            android:exported="false" />
+        <activity
+            android:name=".TicketElectrique"
+            android:exported="false" />
+        <activity
             android:name=".Profil"
             android:exported="false" />
         <activity
@@ -31,6 +37,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".sign_up" />
+        <activity
+            android:name=".home"
+            android:exported="false" />
     </application>
 
 </manifest>

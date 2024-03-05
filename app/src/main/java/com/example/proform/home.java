@@ -16,6 +16,5 @@ public class home extends AppCompatActivity {
     public void backtolfh(View view){
         Intent intent=new Intent(this,MainActivity.class);
         startActivity(intent);
-
     }
 }

@@ -45,13 +45,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/baseline_logout_24"
+        android:onClick="backtolfh"
         android:background="@null"
         android:padding="8dp"
     /><TextView
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:text="LOG OUT"
-      android:onClick="backtolfh"
       android:textColor="@color/white"
 />
 
