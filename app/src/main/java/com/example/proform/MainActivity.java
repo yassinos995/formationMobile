@@ -28,7 +28,6 @@ import java.util.regex.Pattern;
 
 
 public class MainActivity extends AppCompatActivity {
-
     private FirebaseAuth firebaseAuth;
     private EditText emailEditText,passwordEditText;
     private static final String mail_regex="^[A-Za-z0-9+_.-]+@(.+)$";
@@ -102,6 +101,8 @@ public class MainActivity extends AppCompatActivity {
             if (loggedUser.isEmailVerified()){
                 finish();
                 startActivity(new Intent(getApplicationContext(), home.class));
+                Toast.makeText(this, "welcome to home", Toast.LENGTH_SHORT).show();
+
             }else {
                 Toast.makeText(this, "Please verify your Email", Toast.LENGTH_SHORT).show();
                 firebaseAuth.signOut();
@@ -129,5 +130,8 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, home.class);
         startActivity(intent);
     }
+
+
+
 }
 

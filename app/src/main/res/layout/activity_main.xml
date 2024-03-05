@@ -97,6 +97,8 @@
                android:id="@+id/password_id"
                android:inputType="textPassword"
                android:drawableEnd="@drawable/password_icon"/>
+
+
            <RelativeLayout
                android:layout_width="match_parent"
                android:layout_height="wrap_content">

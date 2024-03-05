@@ -43,7 +43,9 @@ public class sign_up extends AppCompatActivity {
         DatabaseReference= FirebaseDatabase.getInstance().getReference();
         firebaseAuth = FirebaseAuth.getInstance();
 
-        btn_s.setOnClickListener(v -> signUpUser());
+        btn_s.setOnClickListener(v -> {
+            signUpUser();
+        } );
     }
 
     public void goToLogins() {
@@ -62,8 +64,6 @@ public class sign_up extends AppCompatActivity {
             firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     sendEmailVerification(name, email, phoneNumber);
-                    goToLogins();
-                    Toast.makeText(this, "here", Toast.LENGTH_SHORT).show();
                 } else {
                     // Handle sign-up failure
                     Toast.makeText(sign_up.this, "Sign up failed. Please try again.", Toast.LENGTH_SHORT).show();

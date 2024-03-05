@@ -54,6 +54,22 @@
       android:text="LOG OUT"
       android:textColor="@color/white"
 />
+    <View
+        android:layout_width="wrap_content"
+        android:layout_height="5dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/signUp"
+        android:text="Check Profil"
+        android:onClick="goToProfile"
+        android:layout_gravity="center"
+        android:alpha="0.7"
+        android:textColor="@color/browser_actions_bg_grey"
+        android:textStyle="bold"
+        android:textSize="24sp"
+        />
 
   </LinearLayout>
 

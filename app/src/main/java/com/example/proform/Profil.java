@@ -1,3 +1,5 @@
+
+
 package com.example.proform;
 
 import androidx.annotation.NonNull;
@@ -55,6 +57,10 @@ public class Profil extends AppCompatActivity {
                 name.setText(namep);
                 email.setText(emailp);
                 phone.setText(phoneNumberp);
+
+                // Initialize originalName and originalPhoneNumber after getting data from database
+                originalName = namep;
+                originalPhoneNumber = phoneNumberp;
             }
 
             @Override
@@ -62,6 +68,11 @@ public class Profil extends AppCompatActivity {
                 Toast.makeText(Profil.this, " Error !", Toast.LENGTH_SHORT).show();
             }
         });
+
+        // Attach TextWatcher to EditText fields
+        name.addTextChangedListener(textWatcher);
+        phone.addTextChangedListener(textWatcher);
+
         cancel.setOnClickListener(v -> {
             SharedPreferences preferences = getSharedPreferences("checkBox", MODE_PRIVATE);
             SharedPreferences.Editor editor = preferences.edit();
@@ -72,32 +83,33 @@ public class Profil extends AppCompatActivity {
             Toast.makeText(this, "you Log Out", Toast.LENGTH_SHORT).show();
             finish();
         });
+
         edit.setOnClickListener(v -> {
             String newName = name.getText().toString().trim();
             String newPhoneNumber = phone.getText().toString().trim();
+            if (!newName.equals(originalName) || !newPhoneNumber.equals(originalPhoneNumber)) {
+                rf.child("name").setValue(newName);
+                rf.child("phoneNumber").setValue(newPhoneNumber);
 
-            rf.child("name").setValue(newName);
-            rf.child("phoneNumber").setValue(newPhoneNumber);
+                originalName = newName;
+                originalPhoneNumber = newPhoneNumber;
 
-            originalName = newName;
-            originalPhoneNumber = newPhoneNumber;
+                Toast.makeText(Profil.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
+            } else {
 
-            Toast.makeText(Profil.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
-
-
+                edit.setEnabled(false);
+                Toast.makeText(Profil.this, "Ha Weldi Rak ma Badelt chy", Toast.LENGTH_SHORT).show();
+            }
         });
-        edit.setEnabled(false);
     }
+
 
     private TextWatcher textWatcher = new TextWatcher() {
         @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-        }
         @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-        }
+        public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
         @Override
         public void afterTextChanged(Editable s) {
@@ -108,6 +120,5 @@ public class Profil extends AppCompatActivity {
                 edit.setEnabled(false);
             }
         }
-
     };
 }

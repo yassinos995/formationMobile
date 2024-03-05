@@ -17,4 +17,8 @@ public class home extends AppCompatActivity {
         Intent intent=new Intent(this,MainActivity.class);
         startActivity(intent);
     }
+    public void goToProfile(View view){
+        Intent intent = new Intent(this,Profil.class);
+        startActivity(intent);
+    }
 }
