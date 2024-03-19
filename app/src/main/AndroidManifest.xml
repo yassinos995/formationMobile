@@ -4,6 +4,8 @@
     package="com.example.proform">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -16,11 +18,24 @@
         android:theme="@style/Theme.Proform"
         tools:targetApi="31">
         <activity
-            android:name=".TicketElectric"
+            android:name=".administration"
             android:exported="false" />
         <activity
-            android:name=".TicketElectrique"
+            android:name=".delivred"
             android:exported="false" />
+        <activity
+            android:name=".orders"
+            android:exported="false" />
+        <activity
+            android:name=".HomeChef"
+            android:exported="false" />
+        <activity
+            android:name=".HomeTransporter"
+            android:exported="false" />
+        <activity
+            android:name=".TicketElectric"
+            android:exported="false" />
+
         <activity
             android:name=".Profil"
             android:exported="false" />

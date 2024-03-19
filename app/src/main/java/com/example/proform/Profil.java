@@ -79,8 +79,7 @@ public class Profil extends AppCompatActivity {
             editor.putBoolean("remember", false);
             editor.apply();
             firebaseAuth.signOut();
-            startActivity(new Intent(Profil.this, MainActivity.class));
-            Toast.makeText(this, "you Log Out", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(Profil.this, home.class));
             finish();
         });
 

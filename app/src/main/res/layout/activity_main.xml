@@ -98,7 +98,6 @@
                android:inputType="textPassword"
                android:drawableEnd="@drawable/password_icon"/>
 
-
            <RelativeLayout
                android:layout_width="match_parent"
                android:layout_height="wrap_content">
@@ -163,21 +162,24 @@
                <ImageView
                    android:layout_width="40dp"
                    android:layout_height="40dp"
+                   android:id="@+id/logof"
                    android:layout_margin="12dp"
                    android:background="@drawable/fbook"
-                   android:onClick="goTofb"/>
+                   />
                <ImageView
-                   android:layout_width="40dp"
-                   android:layout_height="40dp"
+                   android:layout_width="30dp"
+                   android:layout_height="30dp"
+                   android:id="@+id/id_google"
                    android:layout_margin="12dp"
-                   android:background="@drawable/twit2p"
-                   android:onClick="goToTwitter"/>
+                   android:background="@drawable/gologo"
+                  />
                <ImageView
                    android:layout_width="40dp"
                    android:layout_height="40dp"
+                   android:id="@+id/id_git"
                    android:layout_margin="12dp"
                    android:background="@drawable/githubassets"
-                   android:onClick="goToGit"/>
+                   />
 
            </LinearLayout>
 
