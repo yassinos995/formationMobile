@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/assetsroad1"
-    tools:context=".MainActivity">
+    tools:context=".updatep">
+
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -53,155 +54,95 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="429dp"
+            android:layout_marginBottom="-20dp"
             android:orientation="vertical"
-            android:padding="28dp"
-            android:layout_marginBottom="-20dp">
+            android:padding="28dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sign Up"
+                android:text="Update"
                 android:textColor="@color/my_primary"
                 android:textSize="32sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Your Welcome"
-                android:alpha="0.7"
-                android:textSize="16sp" />
 
             <View
                 android:layout_width="wrap_content"
                 android:layout_height="20dp" />
+
+            <!-- Name -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:alpha="0.7"
                 android:text="Name"
-                android:alpha="0.7"
                 android:textStyle="bold" />
 
             <EditText
+                android:id="@+id/id_nameProfileU"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/id_name"
-                android:inputType="text"
-                android:drawableEnd="@drawable/person1" />
+                android:drawableEnd="@drawable/person1"
+                android:inputType="text" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:alpha="0.7"
                 android:text="Email Address"
-                android:alpha="0.7"
                 android:textStyle="bold" />
 
             <EditText
+                android:id="@+id/id_emailsProfileU"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/id_emails"
+                android:drawableEnd="@drawable/done_icon"
                 android:inputType="textEmailAddress"
-                android:drawableEnd="@drawable/done_icon" />
+                android:focusableInTouchMode="false"/>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:alpha="0.7"
                 android:text="Phone number"
-                android:alpha="0.7"
-                android:textStyle="bold" />
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number"
-                android:id="@+id/id_phone"
-                android:drawableEnd="@drawable/phone1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Password"
-                android:alpha="0.7"
                 android:textStyle="bold" />
 
             <EditText
+                android:id="@+id/id_phoneProfileU"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:id="@+id/id_passwords"
-                android:drawableEnd="@drawable/password_icon" />
+                android:drawableEnd="@drawable/phone1"
+                android:inputType="number" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Repeat Password"
-                android:alpha="0.7"
-                android:textStyle="bold" />
-            <EditText
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:id="@+id/id_passwordr"
-                android:drawableEnd="@drawable/password_icon" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Poste : "
-                android:alpha="0.7"
-                android:textStyle="bold"/>
-
-            <RadioGroup
-                android:id="@+id/posteRadioGroup"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-            <RadioButton
-                android:id="@+id/transporterRadioButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Transporter" />
-
-            <RadioButton
-                android:id="@+id/chefPersonnelleRadioButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Chef personnelle"/>
-
-                <RadioButton
-                    android:id="@+id/AdminRadioButton"
+                <Button
+                    android:id="@+id/btn_edit_profileU"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=" Admin"/>
+                    android:layout_marginTop="5dp"
+                    android:layout_marginEnd="10dp"
+                    android:text="Update"
+                   />
 
-            </RadioGroup>
-
-
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <TextView
+                <Button
+                    android:id="@+id/btn_CancelProfileU"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true" />
-            </RelativeLayout>
-
-            <View
-                android:layout_width="wrap_content"
-                android:layout_height="10dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:id="@+id/btn_s"
-                android:text="Sign Up"
-                app:cornerRadius="32dp" />
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="5dp"
+                    android:text="Cancel" />
+            </LinearLayout>
 
             <View
                 android:layout_width="wrap_content"
                 android:layout_height="40dp" />
-
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </RelativeLayout>

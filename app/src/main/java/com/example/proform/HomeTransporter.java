@@ -3,139 +3,230 @@ package com.example.proform;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.TextView;
-import android.Manifest;
+import android.widget.Toast;
 
-
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
+import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class HomeTransporter extends AppCompatActivity {
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
-    private TextView locationTextView;
-    private FusedLocationProviderClient fusedLocationClient;
+
     private BottomNavigationView bottomNavigationView;
     private CardView orderCardView, administrationCardView, delivredCardView;
-
+    private TextView textView2;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser user;
+    private DatabaseReference userRef;
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
+    private ImageButton menuButton2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_transporter);
+
+        firebaseAuth = FirebaseAuth.getInstance();
+        user = firebaseAuth.getCurrentUser();
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        userRef = firebaseDatabase.getReference("users").child(user.getUid());
+
+        textView2 = findViewById(R.id.textView2);
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
-        bottomNavigationView.setSelectedItemId(R.id.home11);
         orderCardView = findViewById(R.id.orderCardView);
         administrationCardView = findViewById(R.id.administrationCardView);
-        delivredCardView = findViewById(R.id.delivredCardView);
-        locationTextView = findViewById(R.id.location);
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    LOCATION_PERMISSION_REQUEST_CODE);
-        } else {
-            requestLocation();
+        menuButton2 = findViewById(R.id.id_menu);
+        bottomNavigationView.setSelectedItemId(R.id.homeT);
+
+        drawerLayout = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.nav_view);
+        setupNavigationView();
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid());
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        String userName = snapshot.child("name").getValue(String.class);
+                        if (userName != null) {
+                            textView2.setText(userName);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.e("HomeTransporter", "Failed to load user profile: " + error.getMessage());
+                }
+            });
         }
 
         bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                // if (item.getItemId() == R.id.like22) {
-                //   return true;
-                // } else if (item.getItemId() == R.id.cart11) {
-                // return true;
-                //}
-                //else
                 int itemId = item.getItemId();
-                if (itemId == R.id.home11 || itemId == R.id.profile11) {
+                if (itemId == R.id.homeT) {
+                    return true;
+                } else if (itemId == R.id.profileT) {
+                    startActivity(new Intent(HomeTransporter.this, Profil.class));
                     return true;
                 }
                 return false;
             }
-
-        });
-        orderCardView.setOnClickListener(v -> {
-            Intent intent = new Intent(this, orders.class);
-            startActivity(intent);
         });
 
-        administrationCardView.setOnClickListener(v -> {
-            Intent intent = new Intent(this, administration.class);
-            startActivity(intent);
+        menuButton2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
         });
 
-        delivredCardView.setOnClickListener(v -> {
-            Intent intent = new Intent(this, delivred.class);
-            startActivity(intent);
+        orderCardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeTransporter.this, OrdersT.class);
+                startActivity(intent);
+            }
+        });
+
+        administrationCardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeTransporter.this, administration.class);
+                startActivity(intent);
+            }
+        });
+
+        loadUserProfile();
+    }
+
+    private void loadUserProfile() {
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    String name = dataSnapshot.child("name").getValue(String.class);
+                    if (name != null) {
+                        // Update UI with user profile information
+                        Toast.makeText(HomeTransporter.this, "Welcome, " + name, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("HomeTransporter", "Failed to load user profile: " + databaseError.getMessage());
+            }
         });
     }
 
-    private void requestLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // Permission not granted, request it
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-        } else {
-            // Permission granted, retrieve location
-            fusedLocationClient.getCurrentLocation(LocationRequest.PRIORITY_HIGH_ACCURACY, null).addOnSuccessListener(this, new OnSuccessListener<Location>() {
+    private void setupNavigationView() {
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int itemId = item.getItemId();
+                if (itemId == R.id.nav_home) {
+                    gohome();
+                    return true;
+                } else if (itemId == R.id.nav_list_employers) {
+                    openListEmployersActivity();
+                    return true;
+                } else if (itemId == R.id.nav_list_commands) {
+                    openListCommandsActivity();
+                    return true;
+                } else if (itemId == R.id.nav_settings) {
+                    return true;
+                } else if (itemId == R.id.nav_info) {
+                    return true;
+                } else if (itemId == R.id.nav_share) {
+                    shareApp();
+                    return true;
+                } else if (itemId == R.id.nav_logout) {
+                    logout();
+                    return true;
+                } else {
+                    drawerLayout.closeDrawers();
+                    return true;
+                }
+            }
+        });
+
+        // Toggle visibility of menu items based on user type (admin or not)
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid());
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
-                public void onSuccess(Location location) {
-                    if (location != null) {
-                        Geocoder geocoder = new Geocoder(HomeTransporter.this, Locale.getDefault());
-                        try {
-                            List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-                            if (!addresses.isEmpty()) {
-                                Address address = addresses.get(0);
-                                // Construct the city and country string
-                                String city = address.getLocality();
-                                String country = address.getCountryName();
-                                String locationString = city + ", " + country;
-                                locationTextView.setText(locationString);
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        Boolean isAdmin = snapshot.child("admin").getValue(Boolean.class);
+                        if (isAdmin != null) {
+                            MenuItem listEmployersMenuItem = navigationView.getMenu().findItem(R.id.nav_list_employers);
+                            MenuItem listCommandsMenuItem = navigationView.getMenu().findItem(R.id.nav_list_commands);
+                            if (isAdmin.booleanValue()) {
+                                listEmployersMenuItem.setVisible(true);
+                                listCommandsMenuItem.setVisible(true);
                             } else {
-                                locationTextView.setText("Location not available");
+                                listEmployersMenuItem.setVisible(false);
+                                listCommandsMenuItem.setVisible(false);
                             }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            locationTextView.setText("Error retrieving location");
+                        } else {
+                            // Handle the case where isAdmin is null
+                            Log.e("HomeTransporter", "isAdmin is null");
                         }
-                    } else {
-                        locationTextView.setText("Location not available");
                     }
+                }
+
+
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.e("setupNavigationView", "Failed to retrieve user data: " + error.getMessage());
                 }
             });
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted, retrieve location
-                requestLocation();
-            } else {
-                // Permission denied, inform the user
-                locationTextView.setText("Location permission denied");
-            }
-        }
+    private void openListCommandsActivity() {
+        Intent intent = new Intent(this, listcommand.class);
+        startActivity(intent);
     }
 
+    private void openListEmployersActivity() {
+        Intent intent = new Intent(this, listemp.class);
+        startActivity(intent);
+    }
 
+    private void gohome() {
+        Intent intent = new Intent(this, HomeTransporter.class);
+        startActivity(intent);
+    }
+
+    private void shareApp() {
+        Toast.makeText(this, "Mazelna ma gadinahech", Toast.LENGTH_SHORT).show();
+    }
+
+    private void logout() {
+        Intent intent = new Intent(HomeTransporter.this, MainActivity.class);
+        startActivity(intent);
+    }
 }

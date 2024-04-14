@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Proform</string>
+    <string name="open_nav">open navigation drawer</string>
+    <string name="close_nav">close navigation drawer</string>
+    <string name="employer">
+        /email
+        /name
+        /phoneNumber
+        /poste
+    </string>
 </resources>
