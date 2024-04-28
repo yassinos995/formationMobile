@@ -3,6 +3,7 @@ package com.example.proform;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.ProgressDialog;
 import android.util.Log;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -41,12 +42,12 @@ import java.util.regex.Pattern;
 public class MainActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private EditText emailEditText, passwordEditText;
-    //private static final String ADMIN_EMAIL = "rabhiyassine995@gmail.com";
     private static final String mail_regex = "^[A-Za-z0-9+_.-]+@(.+)$";
     MaterialButton btn_login;
     private CheckBox rememberMe;
     ImageView facebookLogo, googleLogo;
     boolean isPasswordVisible = false;
+    private ProgressDialog progressDialog;
 
     @Override
 
@@ -59,10 +60,14 @@ public class MainActivity extends AppCompatActivity {
         firebaseAuth = FirebaseAuth.getInstance();
         rememberMe = findViewById(R.id.rememberMe);
         facebookLogo = findViewById(R.id.logof);
-        googleLogo = findViewById(R.id.id_google);
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("STANA HEEEY...");
+        progressDialog.setCancelable(false);
+
+        //googleLogo = findViewById(R.id.id_google);
 
 
-        SharedPreferences preferences = getSharedPreferences("checkBox", MODE_PRIVATE);
+      /*  SharedPreferences preferences = getSharedPreferences("checkBox", MODE_PRIVATE);
         boolean resCheckBox = preferences.getBoolean("Remember", false);
 
         if (resCheckBox) {
@@ -71,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Please sign in !", Toast.LENGTH_SHORT).show();
         }
 
-        rememberMe.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+       rememberMe.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (buttonView.isChecked()) {
@@ -86,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
                     editor.apply();
                 }
             }
-        });
+        });*/
 
         btn_login.setOnClickListener(v -> {
             String emails = emailEditText.getText().toString().trim();
@@ -104,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        googleLogo.setOnClickListener(new View.OnClickListener() {
+       /* googleLogo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String googleUrl = "https://mail.google.com/mail/rabhiyassine995@gmail.com/0/#inbox";
@@ -119,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
                 }
             }
-        });
+        });*/
 
 
         facebookLogo.setOnClickListener(new View.OnClickListener() {
@@ -169,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void login(String email, String password) {
         Log.d("Login", "Attempting to log in with email: " + email);
+        progressDialog.show();
         firebaseAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -177,18 +183,16 @@ public class MainActivity extends AppCompatActivity {
                         if (user != null) {
                             checkUserRole(user);
                             CheckEmailVerification();
+                            progressDialog.dismiss();
                         }
                     } else {
                         Toast.makeText(MainActivity.this, "Authentication failed.",
                                 Toast.LENGTH_SHORT).show();
                         Log.e("Login", "Authentication failed: " + task.getException().getMessage());
-                        // Add additional logging for better understanding of the error
                         task.getException().printStackTrace();
                     }
                 });
     }
-
-
     private void checkUserRole(FirebaseUser user) {
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid());
         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -211,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
                                     break;
                                 case "Admin":
                                     Log.d("UserRole", "Navigating to Admin Dashboard");
-                                    goToAdminDashboard();
+                                    goToAdminDashboard(); // Redirect admin to home activity
                                     break;
                                 default:
                                     Log.d("UserRole", "Redirecting to Regular User Dashboard");
@@ -235,6 +239,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private void goToAdminDashboard() {
         Intent intent = new Intent(this,home.class);
@@ -308,5 +313,3 @@ public class MainActivity extends AppCompatActivity {
     }
 
 }
-
-

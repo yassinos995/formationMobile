@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "465970164285",
+    "firebase_url": "https://proform-45448-default-rtdb.firebaseio.com",
+    "project_id": "proform-45448",
+    "storage_bucket": "proform-45448.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:465970164285:android:034c276c50985650353054",
+        "android_client_info": {
+          "package_name": "com.example.proform"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "465970164285-htkstpnsjih478mjnksrjbkb2gan0t1h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBP1JvmH2gzJ-CE1kaSwilzlStOkxJNHmg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "465970164285-htkstpnsjih478mjnksrjbkb2gan0t1h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -156,7 +156,7 @@
                <ImageView
                    android:layout_width="30dp"
                    android:layout_height="30dp"
-                   android:id="@+id/id_google"
+                   android:id="@+id/google_sign_in_button"
                    android:layout_margin="12dp"
                    android:background="@drawable/gologo"
                   />

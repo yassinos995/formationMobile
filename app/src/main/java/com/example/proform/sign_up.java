@@ -1,5 +1,6 @@
 package com.example.proform;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ProgressDialog;
@@ -20,8 +21,12 @@ import com.example.proform.model.User;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,12 +36,18 @@ public class sign_up extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private DatabaseReference DatabaseReference;
     private static final String mail_regex = "^[A-Za-z0-9+_.-]+@(.+)$";
+    private ProgressDialog progressDialog;
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Please wait...");
+        progressDialog.setCancelable(false);
+
 
         nameEditText = findViewById(R.id.id_name);
         emailEditText = findViewById(R.id.id_emails);
@@ -52,7 +63,6 @@ public class sign_up extends AppCompatActivity {
             signUpUser();
         });
     }
-
     private void signUpUser() {
         String name = nameEditText.getText().toString().trim();
         String email = emailEditText.getText().toString().trim();
@@ -62,6 +72,8 @@ public class sign_up extends AppCompatActivity {
         RadioGroup posteRadioGroup = findViewById(R.id.posteRadioGroup);
         int selectedRadioButtonId = posteRadioGroup.getCheckedRadioButtonId();
         RadioButton selectedRadioButton = findViewById(selectedRadioButtonId);
+
+        progressDialog.show();
 
         if (selectedRadioButton != null) {
             String poste = selectedRadioButton.getText().toString().trim();
@@ -76,21 +88,29 @@ public class sign_up extends AppCompatActivity {
                 });
             }
         } else {
-            Log.e("sign_up", "Selected RadioButton is null");
+            progressDialog.dismiss();
         }
     }
-
     private void sendEmailVerification(String name, String email, String phoneNumber, String poste) {
         FirebaseUser loggedUser = firebaseAuth.getCurrentUser();
         if (loggedUser != null) {
             loggedUser.sendEmailVerification().addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
+                    // Dismiss progress dialog after successful email verification
+                    progressDialog.dismiss();
+
+                    // Send user data after successful email verification
                     sendUserData(name, email, phoneNumber, poste, passwordEditText.getText().toString().trim());
+
                     Toast.makeText(this, "Registration done! Please check your email address.", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(sign_up.this, home.class));
-                    finish();
                 } else {
-                    Toast.makeText(this, "Registration failed.", Toast.LENGTH_SHORT).show();
+                    // Dismiss progress dialog in case of failure
+                    progressDialog.dismiss();
+
+                    // Log error message for better debugging
+                    Log.e("EmailVerification", "Email verification failed: " + task.getException().getMessage());
+
+                    Toast.makeText(this, "Email verification failed. Please try again.", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -103,9 +123,9 @@ public class sign_up extends AppCompatActivity {
         User user = new User(name, email, phoneNumber, poste, password, isAdmin);
         user.setUserId(userId);
         user.setAdmin(isAdmin);
+        usersRef.child(userId).setValue(user);
         usersRef.child("" + firebaseAuth.getUid()).setValue(user);
     }
-
     private boolean isValidEmail(String email) {
         Pattern pattern = Pattern.compile(mail_regex);
         Matcher matcher = pattern.matcher(email);
@@ -135,4 +155,5 @@ public class sign_up extends AppCompatActivity {
             return true;
         }
     }
+
 }

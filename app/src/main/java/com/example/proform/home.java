@@ -1,6 +1,7 @@
 package com.example.proform;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.view.GravityCompat;
@@ -11,6 +12,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,11 +35,15 @@ public class home extends AppCompatActivity {
     private ImageButton menuButton;
     private TextView textView2;
 
+    private static final int REQUEST_CODE_ADD_TRANSPORTER = 1001;
+
+
+    private static final int PROFILE_ACTIVITY_REQUEST_CODE = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-
         bottomNavigationView = findViewById(R.id.bottomNavigationView11);
         AddTransCardView = findViewById(R.id.AddTransCardView);
         addChefPCardView = findViewById(R.id.addchefPCardView);
@@ -48,27 +54,6 @@ public class home extends AppCompatActivity {
         textView2 = findViewById(R.id.textView2);
         setupNavigationView();
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid());
-            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        String userName = snapshot.child("name").getValue(String.class);
-                        if (userName != null) {
-                            textView2.setText(userName);
-                        }
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
-
-        }
         menuButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -76,8 +61,7 @@ public class home extends AppCompatActivity {
             }
         });
 
-
-        bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+        bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int itemId = item.getItemId();
@@ -86,7 +70,10 @@ public class home extends AppCompatActivity {
                     return true;
                 } else if (itemId == R.id.profileAd) {
                     Log.d("Navigation", "Profile selected");
-                    startActivity(new Intent(home.this, Profil.class));
+                    Intent intent = new Intent(home.this, Profil.class);
+                    String userName = textView2.getText().toString();
+                    intent.putExtra("userName", userName);
+                    startActivity(intent);
                     return true;
                 }
                 return false;
@@ -97,7 +84,8 @@ public class home extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(home.this, sign_up.class);
-                startActivity(intent);
+                intent.putExtra("fromHome", true);
+                startActivityForResult(intent, REQUEST_CODE_ADD_TRANSPORTER);
             }
         });
 
@@ -116,7 +104,44 @@ public class home extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateProfileInformation();
+    }
+
+    private void updateProfileInformation() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            fetchCurrentUserProfileFromFirebase();
+        }
+    }
+
+    private void fetchCurrentUserProfileFromFirebase() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid());
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        String userName = snapshot.child("name").getValue(String.class);
+                        String poste = snapshot.child("poste").getValue(String.class);
+                        if ("Admin".equals(poste)) {
+                            textView2.setText(userName);
+                        } else {
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(home.this, "Error fetching user profile", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
 
@@ -163,8 +188,6 @@ public class home extends AppCompatActivity {
     }
 
     private void gohome() {
-        Intent intent = new Intent(home.this, home.class);
-        startActivity(intent);
     }
 
     private void shareApp() {
@@ -172,10 +195,11 @@ public class home extends AppCompatActivity {
     }
 
     private void logout() {
+        FirebaseAuth.getInstance().signOut();
         Intent intent = new Intent(home.this, MainActivity.class);
         startActivity(intent);
+        finish();
     }
-
     @Override
     public void onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -184,13 +208,14 @@ public class home extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-
     @Override
-    protected void onResume() {
-        super.onResume();
-        boolean isFromProfil = getIntent().getBooleanExtra("from_profil", false);
-        if (isFromProfil) {
-            bottomNavigationView.setSelectedItemId(R.id.homeAd);
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_ADD_TRANSPORTER) {
+            if (resultCode == RESULT_OK) {
+                updateProfileInformation();
+            }
         }
     }
-}
+    }
+

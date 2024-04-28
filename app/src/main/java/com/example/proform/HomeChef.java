@@ -3,12 +3,16 @@ package com.example.proform;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -22,10 +26,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class HomeChef extends AppCompatActivity {
-    private CardView AddTransCardViewc, listemployersCardViewc;
+    private CardView AddTransCardViewc;
     private BottomNavigationView bottomNavigationView;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
+    private ImageButton menuButton3;
+    private TextView textView2;
 
 
     @Override
@@ -34,10 +40,10 @@ public class HomeChef extends AppCompatActivity {
         setContentView(R.layout.activity_home_chef);
         bottomNavigationView = findViewById(R.id.bottomNavigationView11);
         AddTransCardViewc = findViewById(R.id.AddTransCardViewc);
-        listemployersCardViewc = findViewById(R.id.listemployersCardViewc);
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
-
+        menuButton3=findViewById(R.id.id_menu2);
+        textView2= findViewById(R.id.textView2);
         setupNavigationView();
 
         bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
@@ -50,10 +56,19 @@ public class HomeChef extends AppCompatActivity {
                     return true;
                 } else if (itemId == R.id.profileAd) {
                     Log.d("Navigation", "Profile selected");
-                    startActivity(new Intent(HomeChef.this, Profil.class));
+                    Intent intent =new Intent(HomeChef.this, Profil.class);
+                    String userName = textView2.getText().toString();
+                    intent.putExtra("userName", userName);
+                    startActivity(intent);
                     return true;
                 }
                 return false;
+            }
+        });
+        menuButton3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.openDrawer(GravityCompat.START);
             }
         });
 
@@ -61,11 +76,44 @@ public class HomeChef extends AppCompatActivity {
             Intent intent = new Intent(this, sign_up.class);
             startActivity(intent);
         });
-        listemployersCardViewc.setOnClickListener(v -> {
-            Intent intent = new Intent(this, listemp.class);
-            startActivity(intent);
-        });
 
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateProfileInformation();
+    }
+
+    private void updateProfileInformation() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            fetchCurrentUserProfileFromFirebase();
+        }
+    }
+
+    private void fetchCurrentUserProfileFromFirebase() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid());
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        String userName = snapshot.child("name").getValue(String.class);
+                        String poste = snapshot.child("poste").getValue(String.class);
+                        if ("Chef personnelle".equals(poste)) {
+                            textView2.setText(userName);
+                        } else {
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(HomeChef.this, "Error fetching user profile", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     private void setupNavigationView() {
@@ -95,35 +143,8 @@ public class HomeChef extends AppCompatActivity {
                 return true;
             }
         });
-
-        // Toggle visibility of menu items based on user type (admin or not)
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid());
-            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        boolean isAdmin = snapshot.child("admin").getValue(Boolean.class);
-                        MenuItem listEmployersMenuItem = navigationView.getMenu().findItem(R.id.nav_list_employers);
-                        MenuItem listCommandsMenuItem = navigationView.getMenu().findItem(R.id.nav_list_commands);
-                        if (isAdmin) {
-                            listEmployersMenuItem.setVisible(true);
-                            listCommandsMenuItem.setVisible(true);
-                        } else {
-                            listEmployersMenuItem.setVisible(false);
-                            listCommandsMenuItem.setVisible(false);
-                        }
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Log.e("setupNavigationView", "Failed to retrieve user data: " + error.getMessage());
-                }
-            });
         }
-    }
+
 
     private void openListEmployersActivity() {
         Intent intent = new Intent(this, listemp.class);
@@ -144,18 +165,18 @@ public class HomeChef extends AppCompatActivity {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
 
     private void shareApp() {
         Toast.makeText(this, "Mazelna ma gadinahech", Toast.LENGTH_SHORT).show();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        boolean isFromProfil = getIntent().getBooleanExtra("from_profil", false);
 
-        if (isFromProfil) {
-            bottomNavigationView.setSelectedItemId(R.id.homeAd);
-        }
-    }
 }
