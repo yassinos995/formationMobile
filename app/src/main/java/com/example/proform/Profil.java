@@ -2,16 +2,22 @@ package com.example.proform;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -28,6 +34,9 @@ public class Profil extends AppCompatActivity {
     private FirebaseUser user;
     private String originalName;
     private String originalPhoneNumber;
+    private ImageButton menuP;
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
 
     private final TextWatcher textWatcher = new TextWatcher() {
         @Override
@@ -46,12 +55,13 @@ public class Profil extends AppCompatActivity {
             }
         }
     };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profil);
-
+        menuP=findViewById(R.id.id_menuP);
+        drawerLayout = findViewById(R.id.drawer_layout_main);
+        navigationView = findViewById(R.id.nav_view);
         nameEditText = findViewById(R.id.id_nameProfile);
         emailEditText = findViewById(R.id.id_emailsProfile);
         phoneEditText = findViewById(R.id.id_phoneProfile);
@@ -60,6 +70,13 @@ public class Profil extends AppCompatActivity {
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseDatabase = FirebaseDatabase.getInstance();
         user = firebaseAuth.getCurrentUser();
+        setupNavigationView();
+        menuP.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
         String userName = getIntent().getStringExtra("userName");
         DatabaseReference usersRef = firebaseDatabase.getReference().child("users");
         usersRef.orderByChild("name").equalTo(userName).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -104,6 +121,65 @@ public class Profil extends AppCompatActivity {
             finish();
         });
     }
+
+    private void setupNavigationView() {
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int itemId = item.getItemId();
+                if (itemId == R.id.nav_home) {
+                    gohome();
+                    return true;
+                } else if (itemId == R.id.nav_list_employers) {
+                    openListEmployersActivity();
+                    return true;
+                } else if (itemId == R.id.nav_list_commands) {
+                    openListCommandsActivity();
+                    return true;
+                } else if (itemId == R.id.nav_settings) {
+                    return true;
+                } else if (itemId == R.id.nav_info) {
+                    return true;
+                } else if (itemId == R.id.nav_share) {
+                    // shareApp();
+                    return true;
+                } else if (itemId == R.id.nav_logout) {
+                    logout();
+                    return true;
+                } else {
+                    drawerLayout.closeDrawers();
+                    return true;
+                }
+            }
+        });
+    }
+
+    private void gohome() {
+        Intent intent = new Intent(this, home.class);
+        startActivity(intent);
+    }
+    private void openListEmployersActivity() {
+        Intent intent = new Intent(this, listemp.class);
+        startActivity(intent);
+    }
+    private void openListCommandsActivity() {
+        Intent intent = new Intent(this, listcommand.class);
+        startActivity(intent);
+    }
+
+    private void logout() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
     private void updateProfile(DatabaseReference rf) {
         String newName = nameEditText.getText().toString().trim();
         String newPhoneNumber = phoneEditText.getText().toString().trim();

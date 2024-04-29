@@ -1,11 +1,10 @@
 package com.example.proform;
-
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,7 +13,6 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -24,33 +22,47 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-
 public class HomeChef extends AppCompatActivity {
-    private CardView AddTransCardViewc;
+    private CardView AddTransCardViewc,addcommandCardViewc;
     private BottomNavigationView bottomNavigationView;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private ImageButton menuButton3;
     private TextView textView2;
-
-
+    private static final int REQUEST_CODE_ADD_TRANSPORTER = 1002;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_chef);
         bottomNavigationView = findViewById(R.id.bottomNavigationView11);
         AddTransCardViewc = findViewById(R.id.AddTransCardViewc);
+        addcommandCardViewc=findViewById(R.id.addcommandCardViewc);
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
         menuButton3=findViewById(R.id.id_menu2);
         textView2= findViewById(R.id.textView2);
         setupNavigationView();
+        menuButton3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
+
+        AddTransCardViewc.setOnClickListener(v -> {
+            Intent intent = new Intent(this, sign_up.class);
+            startActivity(intent);
+        });
+        addcommandCardViewc.setOnClickListener(v -> {
+            Intent intent = new Intent(this, addcmd.class);
+            startActivity(intent);
+        });
+
 
         bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int itemId = item.getItemId();
-
                 if (itemId == R.id.homeAd) {
                     Log.d("Navigation", "Home selected");
                     return true;
@@ -65,19 +77,8 @@ public class HomeChef extends AppCompatActivity {
                 return false;
             }
         });
-        menuButton3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                drawerLayout.openDrawer(GravityCompat.START);
-            }
-        });
-
-        AddTransCardViewc.setOnClickListener(v -> {
-            Intent intent = new Intent(this, sign_up.class);
-            startActivity(intent);
-        });
-
     }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -90,7 +91,6 @@ public class HomeChef extends AppCompatActivity {
             fetchCurrentUserProfileFromFirebase();
         }
     }
-
     private void fetchCurrentUserProfileFromFirebase() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
@@ -143,8 +143,7 @@ public class HomeChef extends AppCompatActivity {
                 return true;
             }
         });
-        }
-
+    }
 
     private void openListEmployersActivity() {
         Intent intent = new Intent(this, listemp.class);
@@ -157,14 +156,19 @@ public class HomeChef extends AppCompatActivity {
     }
 
     private void gohome() {
-        Intent intent = new Intent(this, HomeChef.class);
-        startActivity(intent);
+        drawerLayout.closeDrawers();
+    }
+
+    private void shareApp() {
+        Toast.makeText(this, "Mazelna ma gadinahech", Toast.LENGTH_SHORT).show();
     }
 
     private void logout() {
-        Intent intent = new Intent(this, MainActivity.class);
+        FirebaseAuth.getInstance().signOut();
+        Intent intent = new Intent(HomeChef.this, MainActivity.class);
         startActivity(intent);
     }
+
     @Override
     public void onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -173,10 +177,13 @@ public class HomeChef extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-
-    private void shareApp() {
-        Toast.makeText(this, "Mazelna ma gadinahech", Toast.LENGTH_SHORT).show();
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_ADD_TRANSPORTER) {
+            if (resultCode == RESULT_OK) {
+                updateProfileInformation();
+            }
+        }
     }
-
-
 }

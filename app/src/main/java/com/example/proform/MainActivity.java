@@ -174,18 +174,19 @@ public class MainActivity extends AppCompatActivity {
 
     private void login(String email, String password) {
         Log.d("Login", "Attempting to log in with email: " + email);
-        progressDialog.show();
         firebaseAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
+                    progressDialog.show();
                     if (task.isSuccessful()) {
                         Log.d("Login", "User logged in successfully");
                         FirebaseUser user = firebaseAuth.getCurrentUser();
                         if (user != null) {
                             checkUserRole(user);
                             CheckEmailVerification();
-                            progressDialog.dismiss();
+
                         }
                     } else {
+                        progressDialog.dismiss();
                         Toast.makeText(MainActivity.this, "Authentication failed.",
                                 Toast.LENGTH_SHORT).show();
                         Log.e("Login", "Authentication failed: " + task.getException().getMessage());

@@ -12,8 +12,10 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,6 +23,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,6 +33,7 @@ import com.example.proform.model.User;
 import com.example.proform.model.UserAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -50,6 +55,9 @@ public class listemp extends AppCompatActivity {
     private UserAdapter adapter;
     private List<User> userList;
     private FirebaseAuth mAuth;
+    private ImageButton menubuttonL;
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
     private boolean testD;
 
     @Override
@@ -61,10 +69,20 @@ public class listemp extends AppCompatActivity {
          testD=false;
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
+        menubuttonL=findViewById(R.id.id_menuL);
+        drawerLayout = findViewById(R.id.drawer_layout_listemp);
+        navigationView = findViewById(R.id.nav_view);
         userList = new ArrayList<>();
         adapter = new UserAdapter(this, userList);
         recyclerView.setAdapter(adapter);
+        setupNavigationView();
+
+        menubuttonL.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
 
         // Fetch authenticated users except admin
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
@@ -98,9 +116,6 @@ public class listemp extends AppCompatActivity {
                 Log.d("UserListDebug", "UserList size: " + userList.size());
                 adapter.notifyDataSetChanged();
             }
-
-
-
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(listemp.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
@@ -110,6 +125,38 @@ public class listemp extends AppCompatActivity {
         // Attach swipe-to-delete functionality to the RecyclerView
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback());
         itemTouchHelper.attachToRecyclerView(recyclerView);
+    }
+
+    private void setupNavigationView() {
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int itemId = item.getItemId();
+                if (itemId == R.id.nav_home) {
+                    gohome();
+                    return true;
+                } else if (itemId == R.id.nav_list_employers) {
+                    openListEmployersActivity();
+                    return true;
+                } else if (itemId == R.id.nav_list_commands) {
+                    openListCommandsActivity();
+                    return true;
+                } else if (itemId == R.id.nav_settings) {
+                    return true;
+                } else if (itemId == R.id.nav_info) {
+                    return true;
+                } else if (itemId == R.id.nav_share) {
+                    // shareApp();
+                    return true;
+                } else if (itemId == R.id.nav_logout) {
+                    logout();
+                    return true;
+                } else {
+                    drawerLayout.closeDrawers();
+                    return true;
+                }
+            }
+        });
     }
 
     // Swipe-to-delete callback class
@@ -260,6 +307,7 @@ public class listemp extends AppCompatActivity {
 
 
 
+
         private void deleteUser(final int position) {
             final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");
             final String userId = userList.get(position).getUserId();
@@ -300,6 +348,34 @@ public class listemp extends AppCompatActivity {
                             }
                         }
                     });
+        }
+    }
+
+    private void openListCommandsActivity() {
+        Intent intent = new Intent(this, listcommand.class);
+        startActivity(intent);
+    }
+
+    private void openListEmployersActivity() {
+        Intent intent = new Intent(this, listemp.class);
+        startActivity(intent);
+    }
+
+    private void logout() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+
+    private void gohome() {
+        Intent intent = new Intent(this, home.class);
+        startActivity(intent);
+    }
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
         }
     }
 }

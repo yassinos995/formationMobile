@@ -37,9 +37,6 @@ public class home extends AppCompatActivity {
 
     private static final int REQUEST_CODE_ADD_TRANSPORTER = 1001;
 
-
-    private static final int PROFILE_ACTIVITY_REQUEST_CODE = 1;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

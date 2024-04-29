@@ -47,8 +47,6 @@ public class sign_up extends AppCompatActivity {
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Please wait...");
         progressDialog.setCancelable(false);
-
-
         nameEditText = findViewById(R.id.id_name);
         emailEditText = findViewById(R.id.id_emails);
         passwordEditText = findViewById(R.id.id_passwords);
@@ -72,16 +70,15 @@ public class sign_up extends AppCompatActivity {
         RadioGroup posteRadioGroup = findViewById(R.id.posteRadioGroup);
         int selectedRadioButtonId = posteRadioGroup.getCheckedRadioButtonId();
         RadioButton selectedRadioButton = findViewById(selectedRadioButtonId);
-
-        progressDialog.show();
-
         if (selectedRadioButton != null) {
             String poste = selectedRadioButton.getText().toString().trim();
             if (validate(name, email, password, repeatPassword, phoneNumber, poste)) {
+                progressDialog.show();
                 firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         sendEmailVerification(name, email, phoneNumber, poste);
                     } else {
+                        progressDialog.dismiss();
                         Log.e("SignUp", "Sign-up failed: " + task.getException());
                         Toast.makeText(sign_up.this, "Sign-up failed. Please try again.", Toast.LENGTH_SHORT).show();
                     }
