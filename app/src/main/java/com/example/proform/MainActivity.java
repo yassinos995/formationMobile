@@ -173,10 +173,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void login(String email, String password) {
-        Log.d("Login", "Attempting to log in with email: " + email);
+        progressDialog.show();
         firebaseAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
-                    progressDialog.show();
+                    progressDialog.dismiss();
                     if (task.isSuccessful()) {
                         Log.d("Login", "User logged in successfully");
                         FirebaseUser user = firebaseAuth.getCurrentUser();
@@ -285,6 +285,14 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
+    }
+
 
     private boolean isValidEmail(String email) {
         Pattern pattern = Pattern.compile(mail_regex);
@@ -308,7 +316,6 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
     public void navigateToAnotherPage(View view) {
-        // Start an intent to navigate to another page
         Intent intent = new Intent(this, sign_up.class);
         startActivity(intent);
     }

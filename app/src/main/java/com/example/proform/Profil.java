@@ -153,10 +153,8 @@ public class Profil extends AppCompatActivity {
             }
         });
     }
-
     private void gohome() {
-        Intent intent = new Intent(this, home.class);
-        startActivity(intent);
+        finish();
     }
     private void openListEmployersActivity() {
         Intent intent = new Intent(this, listemp.class);

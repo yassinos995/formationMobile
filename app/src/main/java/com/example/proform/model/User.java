@@ -4,28 +4,33 @@ import java.io.Serializable;
 
 public class User implements Serializable {
     private String name;
+    private String Cin;
     private String email;
     private String phoneNumber;
     private String poste;
     private String password;
-    private boolean isAdmin;
-    private String userId;
 
     public User() {
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public User(String name, String email, String phoneNumber, String poste, String password, boolean isAdmin) {
+    public User(String name, String Cin, String email,String phoneNumber, String password, String poste) {
         this.name = name;
+        this.Cin=Cin;
         this.email = email;
         this.phoneNumber = phoneNumber;
-        this.poste = poste;
         this.password = password;
-        this.isAdmin = isAdmin;
+        this.poste = poste;
     }
 
-    // Getters and setters
-    // Make sure to generate getters and setters for all fields
+    public String getCin() {
+        return Cin;
+    }
+
+    public void setCin(String cin) {
+        Cin = cin;
+    }
+
     public String getName() {
         return name;
     }
@@ -64,20 +69,5 @@ public class User implements Serializable {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public boolean isAdmin() {
-        return isAdmin;
-    }
-
-    public void setAdmin(boolean admin) {
-        isAdmin = admin;
-    }
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 }

@@ -10,7 +10,6 @@
     tools:openDrawer="start"
     android:background="@android:color/transparent"
     tools:context=".MainActivity">
-
   <com.google.android.material.appbar.AppBarLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content">
@@ -76,6 +75,17 @@
               app:layout_constraintTop_toTopOf="parent" />
 
           <TextView
+              android:id="@+id/textView3"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_marginStart="130dp"
+              android:layout_marginTop="16dp"
+              android:text="Poste"
+              android:textColor="@color/white"
+              app:layout_constraintStart_toStartOf="parent"
+              app:layout_constraintTop_toTopOf="parent" />
+
+          <TextView
               android:id="@+id/textView2"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
@@ -85,10 +95,6 @@
               android:textStyle="bold"
               app:layout_constraintStart_toStartOf="@id/textView"
               app:layout_constraintTop_toBottomOf="@id/textView" />
-
-
-
-
           <ImageView
               android:id="@+id/imageView"
               android:layout_width="wrap_content"
@@ -98,7 +104,6 @@
               android:src="@drawable/bell"
               app:layout_constraintEnd_toEndOf="parent"
               app:layout_constraintTop_toTopOf="parent" />
-
           <ImageView
               android:id="@+id/imageView2"
               android:layout_width="12dp"
@@ -110,7 +115,6 @@
               app:layout_constraintStart_toStartOf="@+id/imageView"
               app:layout_constraintTop_toTopOf="@+id/imageView"
               app:layout_constraintVertical_bias="0.0" />
-
           <TextView
               android:id="@+id/textView4"
               android:layout_width="wrap_content"
@@ -123,8 +127,6 @@
               app:layout_constraintStart_toStartOf="@+id/imageView"
               app:layout_constraintTop_toTopOf="@+id/imageView2"
               app:layout_constraintVertical_bias="1.0" />
-
-
           <EditText
               android:id="@+id/editTextText"
               android:layout_width="0dp"

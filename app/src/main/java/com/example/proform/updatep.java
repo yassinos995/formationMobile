@@ -4,11 +4,19 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.proform.model.User;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 public class updatep extends AppCompatActivity {
     private EditText nameEditText;
@@ -41,23 +49,41 @@ public class updatep extends AppCompatActivity {
             String newEmail = emailEditText.getText().toString().trim();
             String newPhoneNumber = phoneEditText.getText().toString().trim();
 
-            if (user != null) {
-                userRef = FirebaseDatabase.getInstance().getReference("users").child(user.getUserId());
-                userRef.child("name").setValue(newName);
-                userRef.child("email").setValue(newEmail);
-                userRef.child("phoneNumber").setValue(newPhoneNumber)
-                        .addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                Log.d("UpdateDebug", "User profile updated successfully");
-                                Toast.makeText(updatep.this, "User profile updated successfully", Toast.LENGTH_SHORT).show();
-                                finish();
-                            } else {
-                                Log.e("UpdateDebug", "Failed to update user profile: " + task.getException());
-                                Toast.makeText(updatep.this, "Failed to update user profile", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+            User userToUpdate = (User) getIntent().getSerializableExtra("user");
+            if (userToUpdate != null) {
+                DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+                Query userQuery = usersRef.orderByChild("cin").equalTo(userToUpdate.getCin()).limitToFirst(1);
+                userQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                            String userUid = userSnapshot.getKey(); // Retrieve the UID from the snapshot
+                            userRef = usersRef.child(userUid);
+                            userRef.child("name").setValue(newName);
+                            userRef.child("email").setValue(newEmail);
+                            userRef.child("phoneNumber").setValue(newPhoneNumber)
+                                    .addOnCompleteListener(task -> {
+                                        if (task.isSuccessful()) {
+                                            Log.d("UpdateDebug", "User profile updated successfully");
+                                            Toast.makeText(updatep.this, "User profile updated successfully", Toast.LENGTH_SHORT).show();
+                                            finish();
+                                        } else {
+                                            Log.e("UpdateDebug", "Failed to update user profile: " + task.getException());
+                                            Toast.makeText(updatep.this, "Failed to update user profile", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                            break;
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Toast.makeText(updatep.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
+
 
         cancelButton.setOnClickListener(v -> finish());
     }

@@ -34,7 +34,7 @@ public class home extends AppCompatActivity {
     private NavigationView navigationView;
     private ImageButton menuButton;
     private TextView textView2;
-
+    private TextView textView3;
     private static final int REQUEST_CODE_ADD_TRANSPORTER = 1001;
 
     @Override
@@ -49,6 +49,7 @@ public class home extends AppCompatActivity {
         navigationView = findViewById(R.id.nav_view);
         menuButton = findViewById(R.id.id_menu);
         textView2 = findViewById(R.id.textView2);
+        textView3 = findViewById(R.id.textView3);
         setupNavigationView();
 
         menuButton.setOnClickListener(new View.OnClickListener() {
@@ -128,6 +129,7 @@ public class home extends AppCompatActivity {
                         String poste = snapshot.child("poste").getValue(String.class);
                         if ("Admin".equals(poste)) {
                             textView2.setText(userName);
+                            textView3.setText(poste);
                         } else {
                         }
                     }
@@ -149,6 +151,7 @@ public class home extends AppCompatActivity {
                 int itemId = item.getItemId();
                 if (itemId == R.id.nav_home) {
                     gohome();
+                    item.setChecked(true);
                     return true;
                 } else if (itemId == R.id.nav_list_employers) {
                     openListEmployersActivity();
@@ -192,7 +195,6 @@ public class home extends AppCompatActivity {
     }
 
     private void logout() {
-        FirebaseAuth.getInstance().signOut();
         Intent intent = new Intent(home.this, MainActivity.class);
         startActivity(intent);
         finish();

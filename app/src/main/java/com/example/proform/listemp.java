@@ -66,7 +66,7 @@ public class listemp extends AppCompatActivity {
         setContentView(R.layout.activity_listemp);
 
         mAuth = FirebaseAuth.getInstance();
-         testD=false;
+        testD=false;
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         menubuttonL=findViewById(R.id.id_menuL);
@@ -83,39 +83,39 @@ public class listemp extends AppCompatActivity {
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
-
-        // Fetch authenticated users except admin
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
         usersRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 userList.clear();
-                for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                    User user = userSnapshot.getValue(User.class);
-                    if (user != null) {
-                        Log.d("UserDebug", "Name: " + user.getName() + ", isAdmin: " + user.isAdmin());
-
-                        if (user.getPoste().equals("Admin")) {
-                            user.setAdmin(true);
-                        } else {
-                            user.setAdmin(false);
-                        }
-
-                        FirebaseUser currentUser = mAuth.getCurrentUser();
-                        if (currentUser != null && user.getPoste().equals("Chef personnelle") && currentUser.getUid().equals(user.getUserId())) {
-                            if (user.getPoste().equals("Transporter")) {
+                FirebaseUser currentUser = mAuth.getCurrentUser();
+                if (currentUser != null) {
+                    String currentUserUid = currentUser.getUid();
+                    for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                        User user = userSnapshot.getValue(User.class);
+                        if (user != null && user.getPoste() != null && user.getCin() != null) {
+                            if (user.getPoste().equals("Admin") && currentUserUid.equals(user.getCin())) {
                                 userList.add(user);
+                            } else if (user.getPoste().equals("Chef personnelle") && currentUserUid.equals(user.getCin())) {
+                                if (user.getPoste().equals("Transporter")) {
+                                    userList.add(user);
+                                }
+                            } else {
+                                if (!user.getPoste().equals("Admin")) {
+                                    userList.add(user);
+                                }
                             }
                         } else {
-                            if (!user.isAdmin()) {
-                                userList.add(user);
-                            }
+                            Log.e("UserSnapshot", "Null values found in user object or its properties");
                         }
                     }
+                    adapter.notifyDataSetChanged();
+                } else {
+                    Log.e("CurrentUser", "Current user is null");
                 }
-                Log.d("UserListDebug", "UserList size: " + userList.size());
-                adapter.notifyDataSetChanged();
             }
+
+
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(listemp.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
@@ -141,12 +141,8 @@ public class listemp extends AppCompatActivity {
                 } else if (itemId == R.id.nav_list_commands) {
                     openListCommandsActivity();
                     return true;
-                } else if (itemId == R.id.nav_settings) {
-                    return true;
-                } else if (itemId == R.id.nav_info) {
-                    return true;
-                } else if (itemId == R.id.nav_share) {
-                    // shareApp();
+                } else if (itemId == R.id.nav_settings || itemId == R.id.nav_info || itemId == R.id.nav_share) {
+                    // Handle settings, info, and share actions
                     return true;
                 } else if (itemId == R.id.nav_logout) {
                     logout();
@@ -177,14 +173,15 @@ public class listemp extends AppCompatActivity {
 
         @Override
         public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+            int position = viewHolder.getAdapterPosition();
             if (!userList.isEmpty()) {
-                // Perform operations on the list
-                int position = viewHolder.getAdapterPosition();
                 if (position >= 0 && position < userList.size()) {
-                    // Access the list's elements safely
                     if (direction == ItemTouchHelper.LEFT) {
                         showDeleteConfirmationDialog(position);
                     } else if (direction == ItemTouchHelper.RIGHT) {
+                        Intent intent = new Intent(listemp.this, updatep.class);
+                        intent.putExtra("user", userList.get(position));
+                        startActivity(intent);
                         adapter.notifyItemChanged(position);
                     }
                 } else {
@@ -193,17 +190,6 @@ public class listemp extends AppCompatActivity {
             } else {
                 Log.e("SwipeToDelete", "User list is empty");
             }
-
-            int position = viewHolder.getAdapterPosition();
-            if (direction == ItemTouchHelper.LEFT) {
-                showDeleteConfirmationDialog(position);
-            } else if (direction == ItemTouchHelper.RIGHT) {
-                Intent intent= new Intent(listemp.this,updatep.class);
-                intent.putExtra("user", userList.get(position));
-                startActivity(intent);
-                adapter.notifyItemChanged(position);
-            }
-
         }
 
         @Override
@@ -243,6 +229,7 @@ public class listemp extends AppCompatActivity {
 
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
         }
+
         private void clearCanvas(Canvas c, Float left, Float top, Float right, Float bottom) {
             Paint paint = new Paint();
             paint.setColor(((ColorDrawable) background).getColor());
@@ -253,7 +240,6 @@ public class listemp extends AppCompatActivity {
             final EditText input = new EditText(listemp.this);
             input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
 
-            // Check if testD is false before showing the dialog
             if (!testD) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(listemp.this);
                 builder.setView(input);
@@ -278,7 +264,6 @@ public class listemp extends AppCompatActivity {
                                             Toast.makeText(listemp.this, "Incorrect Admin Password", Toast.LENGTH_SHORT).show();
                                             adapter.notifyItemChanged(position);
                                         }
-
                                         @Override
                                         public void onCancelled(@NonNull DatabaseError databaseError) {
                                             Toast.makeText(listemp.this, "Failed to retrieve Admin Password", Toast.LENGTH_SHORT).show();
@@ -301,47 +286,49 @@ public class listemp extends AppCompatActivity {
                 testD = true;
             }
         }
-
-
-
-
-
-
-
         private void deleteUser(final int position) {
-            final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");
-            final String userId = userList.get(position).getUserId();
-            Log.d("UserID", userId);
-            ProgressDialog progressDialog = ProgressDialog.show(listemp.this, "", "Please wait...", true);
-            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-            FirebaseAuth.getInstance().signInWithEmailAndPassword(userList.get(position).getEmail(), userList.get(position).getPassword())
+            final User userToDelete = userList.get(position);
+            final ProgressDialog progressDialog = ProgressDialog.show(listemp.this, "", "Please wait deleting...", true);
+
+            String userEmail = userToDelete.getEmail();
+            String userPassword = userToDelete.getPassword();
+
+            FirebaseAuth.getInstance().signInWithEmailAndPassword(userEmail, userPassword)
                     .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
+                            progressDialog.dismiss();
                             if (task.isSuccessful()) {
                                 FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
                                 if (firebaseUser != null) {
-                                    firebaseUser.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    final String userUID = firebaseUser.getUid();
+                                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");
+                                    databaseReference.child(userUID).removeValue(new DatabaseReference.CompletionListener() {
                                         @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            if (task.isSuccessful()) {
-                                                databaseReference.child(userId).removeValue(new DatabaseReference.CompletionListener() {
-                                                    @Override
-                                                    public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
-                                                        progressDialog.dismiss();
-                                                            if (error == null) {
-                                                            if (position >= 0 && position < userList.size()) {
-                                                            userList.remove(position);
-                                                             adapter.notifyItemRemoved(position);
-                                                             testD=true;
-                                                            Toast.makeText(listemp.this, "User deleted", Toast.LENGTH_SHORT).show();
-                                                            }
-                                                        }
-                                                    }
-                                                });
+                                        public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
+                                            if (error == null) {
+                                                userList.remove(userToDelete);
+                                                adapter.notifyItemRemoved(position);
+                                                Toast.makeText(listemp.this, "User deleted", Toast.LENGTH_SHORT).show();
+                                            } else {
+                                                Toast.makeText(listemp.this, "Failed to delete user data from Realtime Database: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                                             }
                                         }
                                     });
+                                    // Check if the deleted user is the current user
+                                    if (!userUID.equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+                                        // If not, delete the authentication session
+                                        firebaseUser.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (!task.isSuccessful()) {
+                                                    Toast.makeText(listemp.this, "Failed to delete user authentication: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    Toast.makeText(listemp.this, "Failed to get current user", Toast.LENGTH_SHORT).show();
                                 }
                             } else {
                                 Toast.makeText(listemp.this, "Failed to authenticate user: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
@@ -355,20 +342,16 @@ public class listemp extends AppCompatActivity {
         Intent intent = new Intent(this, listcommand.class);
         startActivity(intent);
     }
-
     private void openListEmployersActivity() {
         Intent intent = new Intent(this, listemp.class);
         startActivity(intent);
     }
-
     private void logout() {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
-
     private void gohome() {
-        Intent intent = new Intent(this, home.class);
-        startActivity(intent);
+        finish();
     }
     @Override
     public void onBackPressed() {
