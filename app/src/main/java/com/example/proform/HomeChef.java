@@ -81,8 +81,6 @@ public class HomeChef extends AppCompatActivity {
             }
             return false;
         });
-
-        // Retrieve currentUser from intent extras
         currentUser = (User) getIntent().getSerializableExtra("currentUser");
     }
 
@@ -111,7 +109,6 @@ public class HomeChef extends AppCompatActivity {
                         textView2.setText(userName);
                         textView3.setText(poste);
                     } else {
-                        // Handle other cases if needed
                     }
                 }
             }
@@ -154,7 +151,6 @@ public class HomeChef extends AppCompatActivity {
 
     private void openListEmployersActivity() {
         Intent intent = new Intent(this, listemp.class);
-        intent.putExtra("currentUser", currentUser);
         startActivity(intent);
     }
 
