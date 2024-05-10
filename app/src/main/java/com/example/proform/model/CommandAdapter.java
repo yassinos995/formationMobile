@@ -23,11 +23,9 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
     private Context context;
     private List<commande> commandList;
     private List<String> commandIds;
-    private boolean userIsAdmin; // Flag to indicate whether the user is an Admin
 
-    public CommandAdapter(Context context, boolean userIsAdmin) {
+    public CommandAdapter(Context context) {
         this.context = context;
-        this.userIsAdmin = userIsAdmin;
     }
 
     public void setCommands(List<commande> commandList, List<String> commandIds) {
@@ -43,7 +41,6 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
                 .inflate(R.layout.card_item_layout, parent, false);
         return new ViewHolder(view);
     }
-
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if (commandList != null && position < commandList.size()) {
@@ -51,23 +48,22 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
             holder.dateTextView.setText("Date Limite: " + command.getDateLimite());
             holder.descTextView.setText("Description: " + command.getDesc());
             holder.destTextView.setText("Destination: " + command.getDestination());
-            holder.transporterTextView.setText("Transporter: " + command.getIdtransporter());
             holder.etatTextView.setText("Etat: " + command.getEtat());
+            holder.transporterTextView.setText("idtransporter: " + command.getIdtransporter());
 
-            // Hide buttons if user is admin
-            if (userIsAdmin) {
-                holder.btnCompleted.setVisibility(View.GONE);
-                holder.btnRejected.setVisibility(View.GONE);
-            } else {
+            if ("Not Completed".equals(command.getEtat())) {
                 holder.btnCompleted.setVisibility(View.VISIBLE);
                 holder.btnRejected.setVisibility(View.VISIBLE);
+                holder.btnCompleted.setOnClickListener(v -> updateEtat(position, "Completed"));
+                holder.btnRejected.setOnClickListener(v -> updateEtat(position, "Rejected"));
+            } else {
+                holder.btnCompleted.setVisibility(View.GONE);
+                holder.btnRejected.setVisibility(View.GONE);
             }
 
-            // Button click listeners
-            holder.btnCompleted.setOnClickListener(v -> updateEtat(position, "Completed"));
-            holder.btnRejected.setOnClickListener(v -> updateEtat(position, "Rejected"));
         }
     }
+
 
     private void updateEtat(int position, String etat) {
         if (position >= 0 && position < commandList.size()) {

@@ -131,6 +131,7 @@ public class home extends AppCompatActivity {
                             textView2.setText(userName);
                             textView3.setText(poste);
                         } else {
+
                         }
                     }
                 }
@@ -161,6 +162,9 @@ public class home extends AppCompatActivity {
                     return true;
                 } else if (itemId == R.id.nav_settings) {
                     return true;
+                }else if (itemId == R.id.nav_list_tests) {
+                    openListTestsActivity();
+                    return true;
                 } else if (itemId == R.id.nav_info) {
                     return true;
                 } else if (itemId == R.id.nav_share) {
@@ -175,6 +179,11 @@ public class home extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void openListTestsActivity() {
+        Intent intent = new Intent(home.this, listTests.class);
+        startActivity(intent);
     }
 
     private void openListCommandsActivity() {
@@ -216,5 +225,4 @@ public class home extends AppCompatActivity {
             }
         }
     }
-    }
-
+}

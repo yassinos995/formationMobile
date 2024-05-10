@@ -1,4 +1,5 @@
 package com.example.proform;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,6 +14,8 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.proform.model.User;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -22,61 +25,65 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
 public class HomeChef extends AppCompatActivity {
-    private CardView AddTransCardViewc,addcommandCardViewc;
+    private CardView AddTransCardViewc, addcommandCardViewc;
     private BottomNavigationView bottomNavigationView;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private ImageButton menuButton3;
     private TextView textView2;
+    private TextView textView3;
     private static final int REQUEST_CODE_ADD_TRANSPORTER = 1002;
+
+    private User currentUser; // Define currentUser variable
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_chef);
+
         bottomNavigationView = findViewById(R.id.bottomNavigationView11);
         AddTransCardViewc = findViewById(R.id.AddTransCardViewc);
-        addcommandCardViewc=findViewById(R.id.addcommandCardViewc);
+        addcommandCardViewc = findViewById(R.id.addcommandCardViewc);
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
-        menuButton3=findViewById(R.id.id_menu2);
-        textView2= findViewById(R.id.textView2);
+        menuButton3 = findViewById(R.id.id_menu2);
+        textView2 = findViewById(R.id.textView2);
+        textView3 = findViewById(R.id.textView3);
+
         setupNavigationView();
-        menuButton3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                drawerLayout.openDrawer(GravityCompat.START);
-            }
-        });
+
+        menuButton3.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
         AddTransCardViewc.setOnClickListener(v -> {
             Intent intent = new Intent(this, sign_up.class);
             startActivity(intent);
         });
+
         addcommandCardViewc.setOnClickListener(v -> {
             Intent intent = new Intent(this, addcmd.class);
             startActivity(intent);
         });
 
-
-        bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int itemId = item.getItemId();
-                if (itemId == R.id.homeAd) {
-                    Log.d("Navigation", "Home selected");
-                    return true;
-                } else if (itemId == R.id.profileAd) {
-                    Log.d("Navigation", "Profile selected");
-                    Intent intent =new Intent(HomeChef.this, Profil.class);
-                    String userName = textView2.getText().toString();
-                    intent.putExtra("userName", userName);
-                    startActivity(intent);
-                    return true;
-                }
-                return false;
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.homeAd) {
+                Log.d("Navigation", "Home selected");
+                return true;
+            } else if (itemId == R.id.profileAd) {
+                Log.d("Navigation", "Profile selected");
+                Intent intent = new Intent(HomeChef.this, Profil.class);
+                String userName = textView2.getText().toString();
+                intent.putExtra("userName", userName);
+                startActivity(intent);
+                return true;
             }
+            return false;
         });
+
+        // Retrieve currentUser from intent extras
+        currentUser = (User) getIntent().getSerializableExtra("currentUser");
     }
 
     @Override
@@ -88,39 +95,39 @@ public class HomeChef extends AppCompatActivity {
     private void updateProfileInformation() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
-            fetchCurrentUserProfileFromFirebase();
+            fetchCurrentUserProfileFromFirebase(user.getUid());
         }
     }
-    private void fetchCurrentUserProfileFromFirebase() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid());
-            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        String userName = snapshot.child("name").getValue(String.class);
-                        String poste = snapshot.child("poste").getValue(String.class);
-                        if ("Chef personnelle".equals(poste)) {
-                            textView2.setText(userName);
-                        } else {
-                        }
+
+    private void fetchCurrentUserProfileFromFirebase(String userId) {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(userId);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String userName = snapshot.child("name").getValue(String.class);
+                    String poste = snapshot.child("poste").getValue(String.class);
+                    if ("Chef personnelle".equals(poste)) {
+                        textView2.setText(userName);
+                        textView3.setText(poste);
+                    } else {
+                        // Handle other cases if needed
                     }
                 }
+            }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Toast.makeText(HomeChef.this, "Error fetching user profile", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(HomeChef.this, "Error fetching user profile", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void setupNavigationView() {
         navigationView.setNavigationItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) {
-                gohome();
+                goHome();
                 return true;
             } else if (itemId == R.id.nav_list_employers) {
                 openListEmployersActivity();
@@ -147,6 +154,7 @@ public class HomeChef extends AppCompatActivity {
 
     private void openListEmployersActivity() {
         Intent intent = new Intent(this, listemp.class);
+        intent.putExtra("currentUser", currentUser);
         startActivity(intent);
     }
 
@@ -155,7 +163,7 @@ public class HomeChef extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void gohome() {
+    private void goHome() {
         drawerLayout.closeDrawers();
     }
 
@@ -167,6 +175,7 @@ public class HomeChef extends AppCompatActivity {
         FirebaseAuth.getInstance().signOut();
         Intent intent = new Intent(HomeChef.this, MainActivity.class);
         startActivity(intent);
+        finish();
     }
 
     @Override
@@ -177,6 +186,7 @@ public class HomeChef extends AppCompatActivity {
             super.onBackPressed();
         }
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

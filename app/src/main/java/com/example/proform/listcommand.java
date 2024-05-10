@@ -1,14 +1,22 @@
 package com.example.proform;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
@@ -40,12 +48,12 @@ public class listcommand extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_listcommand);
-        menubuttonLC=findViewById(R.id.id_menuLC);
+        menubuttonLC = findViewById(R.id.id_menuLC);
         drawerLayout = findViewById(R.id.drawer_layout_listeCommand);
         navigationView = findViewById(R.id.nav_view);
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        commandAdapter = new CommandAdapter(this,true);
+        commandAdapter = new CommandAdapter(this);
         recyclerView.setAdapter(commandAdapter);
         setupNavigationView();
         databaseReference = FirebaseDatabase.getInstance().getReference("commands");
@@ -56,6 +64,50 @@ public class listcommand extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback());
+        itemTouchHelper.attachToRecyclerView(recyclerView);
+    }
+    private void openListCommandsActivity() {
+        Intent intent = new Intent(this, listcommand.class);
+        startActivity(intent);
+    }
+
+    private void openListEmployersActivity() {
+        Intent intent = new Intent(this, listemp.class);
+        startActivity(intent);
+    }
+
+    private void logout() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+
+    private void gohome() {
+        Intent intent = new Intent(this, home.class);
+        startActivity(intent);
+    }
+
+    private void retrieveCommands() {
+        Query query = databaseReference.orderByKey();
+        query.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                commandList = new ArrayList<>();
+                List<String> commandIds = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    commande command = snapshot.getValue(commande.class);
+                    String uid = snapshot.getKey();
+                    command.setUid(uid);
+                    commandList.add(command);
+                    commandIds.add(uid);
+                }
+                commandAdapter.setCommands(commandList, commandIds);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
             }
         });
     }
@@ -92,50 +144,91 @@ public class listcommand extends AppCompatActivity {
         });
     }
 
-    private void openListCommandsActivity() {
-        Intent intent = new Intent(this, listcommand.class);
-        startActivity(intent);
-    }
+    private class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
+        private final ColorDrawable backgroundDelete = new ColorDrawable(Color.RED);
+        private final ColorDrawable backgroundUpdate = new ColorDrawable(Color.GRAY);
+        private final Drawable deleteIcon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_delete);
+        private final Drawable updateIcon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.updatei);
 
-    private void openListEmployersActivity() {
-        Intent intent = new Intent(this, listemp.class);
-        startActivity(intent);
-    }
+        SwipeToDeleteCallback() {
+            super(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
+        }
 
-    private void logout() {
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
-    }
+        @Override
+        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            return false;
+        }
 
-    private void gohome() {
-        Intent intent = new Intent(this, home.class);
-        startActivity(intent);
-    }
-
-    private void retrieveCommands() {
-        // Query Firebase to get all commands
-        Query query = databaseReference.orderByKey();
-        query.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                commandList = new ArrayList<>();
-                List<String> commandIds = new ArrayList<>(); // Create a list to hold command IDs
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    // Convert each DataSnapshot to a commande object and add it to the list
-                    commande command = snapshot.getValue(commande.class);
-                    commandList.add(command);
-                    // Add the command ID to the list
-                    commandIds.add(snapshot.getKey());
+        @Override
+        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+            int position = viewHolder.getAdapterPosition();
+            if (position >= 0 && position < commandList.size()) {
+                if (direction == ItemTouchHelper.LEFT) {
+                    // Delete command
+                    deleteCommand(position);
+                } else if (direction == ItemTouchHelper.RIGHT) {
+                    updateCommand(position);
                 }
-                // Set the commands and their IDs to the adapter
-                commandAdapter.setCommands(commandList, commandIds);
+            } else {
+                Log.e("Swipe", "Invalid position: " + position);
+            }
+        }
+
+        private void updateCommand(int position) {
+            commande swipedCommand = commandList.get(position);
+            String uid = swipedCommand.getUid();
+            Intent intent = new Intent(listcommand.this, UpdateCmd.class);
+            intent.putExtra("commandId", uid);
+            startActivity(intent);
+        }
+
+        @Override
+        public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+            View itemView = viewHolder.itemView;
+            int itemHeight = itemView.getHeight();
+
+            if (dX > 0) {
+                backgroundUpdate.setBounds(itemView.getLeft(), itemView.getTop(), itemView.getLeft() + (int) dX, itemView.getBottom());
+                backgroundUpdate.draw(c);
+                int updateIconTop = itemView.getTop() + (itemHeight - updateIcon.getIntrinsicHeight()) / 2;
+                int updateIconMargin = (itemHeight - updateIcon.getIntrinsicHeight()) / 2;
+                int updateIconLeft = itemView.getLeft() + updateIconMargin;
+                int updateIconRight = itemView.getLeft() + updateIconMargin + updateIcon.getIntrinsicWidth();
+                int updateIconBottom = updateIconTop + updateIcon.getIntrinsicHeight();
+                updateIcon.setBounds(updateIconLeft, updateIconTop, updateIconRight, updateIconBottom);
+                updateIcon.draw(c);
+            } else {
+                backgroundDelete.setBounds(itemView.getRight() + (int) dX, itemView.getTop(), itemView.getRight(), itemView.getBottom());
+                backgroundDelete.draw(c);
+                int deleteIconTop = itemView.getTop() + (itemHeight - deleteIcon.getIntrinsicHeight()) / 2;
+                int deleteIconMargin = (itemHeight - deleteIcon.getIntrinsicHeight()) / 2;
+                int deleteIconLeft = itemView.getRight() - deleteIconMargin - deleteIcon.getIntrinsicWidth();
+                int deleteIconRight = itemView.getRight() - deleteIconMargin;
+                int deleteIconBottom = deleteIconTop + deleteIcon.getIntrinsicHeight();
+                deleteIcon.setBounds(deleteIconLeft, deleteIconTop, deleteIconRight, deleteIconBottom);
+                deleteIcon.draw(c);
             }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Handle database error
-            }
-        });
+            super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+        }
+
+        private void deleteCommand(final int position) {
+            String commandId = commandList.get(position).getUid();
+            DatabaseReference commandRef = FirebaseDatabase.getInstance().getReference("commands").child(commandId);
+            commandRef.removeValue(new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
+                    if (error == null) {
+                        commandList.remove(position);
+                        commandAdapter.notifyItemRemoved(position);
+                    } else {
+                        Log.e("DeleteCommand", "Failed to delete command: " + error.getMessage());
+                        commandAdapter.notifyItemChanged(position);
+                    }
+                }
+            });
+        }
+
+
     }
-
 }

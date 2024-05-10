@@ -48,19 +48,30 @@
             android:layout_marginTop="8dp"
             android:text="Etat: Not Completed"
             android:textSize="14sp" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
         <Button
             android:id="@+id/btnCompleted"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Completed" />
+            android:text="Complete"
+            android:backgroundTint="@color/completed_color"/>
+            <View
+                android:layout_width="120dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
         <Button
             android:id="@+id/btnRejected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Rejected" />
+            android:text="Reject"
+            android:backgroundTint="@color/rejected_color"/>
+        </LinearLayout>
 
 
     </LinearLayout>

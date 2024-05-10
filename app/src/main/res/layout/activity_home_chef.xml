@@ -9,7 +9,7 @@
     android:fitsSystemWindows="true"
     tools:openDrawer="start"
     android:background="@android:color/transparent"
-    tools:context=".MainActivity">
+    tools:context=".HomeChef">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -84,6 +84,16 @@
                             android:textStyle="bold"
                             app:layout_constraintStart_toStartOf="@id/textView"
                             app:layout_constraintTop_toBottomOf="@id/textView" />
+                        <TextView
+                            android:id="@+id/textView3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="130dp"
+                            android:layout_marginTop="16dp"
+                            android:text="Poste"
+                            android:textColor="@color/white"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
 
 
 

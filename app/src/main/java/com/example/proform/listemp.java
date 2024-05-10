@@ -50,7 +50,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class listemp extends AppCompatActivity {
-
     private RecyclerView recyclerView;
     private UserAdapter adapter;
     private List<User> userList;
@@ -59,12 +58,10 @@ public class listemp extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private boolean testD;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_listemp);
-
         mAuth = FirebaseAuth.getInstance();
         testD=false;
         recyclerView = findViewById(R.id.recyclerView);
@@ -76,7 +73,6 @@ public class listemp extends AppCompatActivity {
         adapter = new UserAdapter(this, userList);
         recyclerView.setAdapter(adapter);
         setupNavigationView();
-
         menubuttonL.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -84,49 +80,72 @@ public class listemp extends AppCompatActivity {
             }
         });
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
-        usersRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                userList.clear();
-                FirebaseUser currentUser = mAuth.getCurrentUser();
-                if (currentUser != null) {
-                    String currentUserUid = currentUser.getUid();
-                    for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                        User user = userSnapshot.getValue(User.class);
-                        if (user != null && user.getPoste() != null && user.getCin() != null) {
-                            if (user.getPoste().equals("Admin") && currentUserUid.equals(user.getCin())) {
-                                userList.add(user);
-                            } else if (user.getPoste().equals("Chef personnelle") && currentUserUid.equals(user.getCin())) {
-                                if (user.getPoste().equals("Transporter")) {
-                                    userList.add(user);
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            String currentUserUid = currentUser.getUid();
+            // Assuming you have a database reference to the users node
+            DatabaseReference currentUserRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserUid);
+            currentUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        User currentUser = dataSnapshot.getValue(User.class);
+                        if (currentUser != null) {
+                            String currentUserRole = currentUser.getPoste();
+                            usersRef.addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    userList.clear();
+                                    for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                                        User user = userSnapshot.getValue(User.class);
+                                        if (user != null && user.getPoste() != null && user.getCin() != null) {
+                                            if (currentUserUid.equals(user.getCin())) {
+                                                // Skip the current user
+                                                continue;
+                                            }
+                                            if (user.getPoste().equals("Admin")) {
+                                                // Skip admins for all users
+                                                continue;
+                                            }
+                                            if (currentUserRole.equals("Chef personnelle")) {
+                                                // Chef sees only transporters
+                                                if (!user.getPoste().equals("Transporter")) {
+                                                    continue;
+                                                }
+                                            }
+                                            // If none of the above conditions are met, add the user to the list
+                                            userList.add(user);
+                                        } else {
+                                            Log.e("UserSnapshot", "Null values found in user object or its properties");
+                                        }
+                                    }
+                                    adapter.notifyDataSetChanged();
                                 }
-                            } else {
-                                if (!user.getPoste().equals("Admin")) {
-                                    userList.add(user);
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+                                    Toast.makeText(listemp.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                                 }
-                            }
-                        } else {
-                            Log.e("UserSnapshot", "Null values found in user object or its properties");
+                            });
                         }
                     }
-                    adapter.notifyDataSetChanged();
-                } else {
-                    Log.e("CurrentUser", "Current user is null");
                 }
-            }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(listemp.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Log.e("CurrentUser", "Current user is null");
+        }
 
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(listemp.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
 
-        // Attach swipe-to-delete functionality to the RecyclerView
+
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback());
         itemTouchHelper.attachToRecyclerView(recyclerView);
     }
-
     private void setupNavigationView() {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -142,7 +161,6 @@ public class listemp extends AppCompatActivity {
                     openListCommandsActivity();
                     return true;
                 } else if (itemId == R.id.nav_settings || itemId == R.id.nav_info || itemId == R.id.nav_share) {
-                    // Handle settings, info, and share actions
                     return true;
                 } else if (itemId == R.id.nav_logout) {
                     logout();
@@ -154,23 +172,17 @@ public class listemp extends AppCompatActivity {
             }
         });
     }
-
-    // Swipe-to-delete callback class
     private class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
         private final ColorDrawable background = new ColorDrawable(Color.RED);
         private final ColorDrawable backgroundU = new ColorDrawable(Color.GRAY);
         private final Drawable deleteIcon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.icon_delete);
         private final Drawable updateIcon = ContextCompat.getDrawable(getApplicationContext(), R.drawable.updatei);
-
         SwipeToDeleteCallback() {
             super(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
         }
-
         @Override
         public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-            return false;
-        }
-
+            return false;}
         @Override
         public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
             int position = viewHolder.getAdapterPosition();
@@ -189,21 +201,16 @@ public class listemp extends AppCompatActivity {
                 }
             } else {
                 Log.e("SwipeToDelete", "User list is empty");
-            }
-        }
-
+            }}
         @Override
         public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
             View itemView = viewHolder.itemView;
             int itemHeight = itemView.getHeight();
-
             boolean isCancelled = dX == 0 && !isCurrentlyActive;
-
             if (isCancelled) {
                 clearCanvas(c, itemView.getRight() + dX, (float) itemView.getTop(), (float) itemView.getRight(), (float) itemView.getBottom());
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-                return;
-            }
+                return;}
             if (dX > 0) {
                 backgroundU.setBounds(itemView.getLeft(), itemView.getTop(), itemView.getLeft() + (int) dX, itemView.getBottom());
                 backgroundU.draw(c);
@@ -217,7 +224,6 @@ public class listemp extends AppCompatActivity {
             } else {
                 background.setBounds(itemView.getRight() + (int) dX, itemView.getTop(), itemView.getRight(), itemView.getBottom());
                 background.draw(c);
-
                 int deleteIconTop = itemView.getTop() + (itemHeight - deleteIcon.getIntrinsicHeight()) / 2;
                 int deleteIconMargin = (itemHeight - deleteIcon.getIntrinsicHeight()) / 2;
                 int deleteIconLeft = itemView.getRight() - deleteIconMargin - deleteIcon.getIntrinsicWidth();
@@ -226,7 +232,6 @@ public class listemp extends AppCompatActivity {
                 deleteIcon.setBounds(deleteIconLeft, deleteIconTop, deleteIconRight, deleteIconBottom);
                 deleteIcon.draw(c);
             }
-
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
         }
 
@@ -235,57 +240,102 @@ public class listemp extends AppCompatActivity {
             paint.setColor(((ColorDrawable) background).getColor());
             c.drawRect(left, top, right, bottom, paint);
         }
-
         private void showDeleteConfirmationDialog(final int position) {
             final EditText input = new EditText(listemp.this);
             input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-
-            if (!testD) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(listemp.this);
-                builder.setView(input);
-                builder.setMessage("Enter Admin Password:")
-                        .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                String adminPassword = input.getText().toString().trim();
-                                if (!TextUtils.isEmpty(adminPassword)) {
-                                    DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
-                                    Query adminQuery = usersRef.orderByChild("poste").equalTo("Admin").limitToFirst(1);
-                                    adminQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                            for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                                                String adminPasswordFromDB = userSnapshot.child("password").getValue(String.class);
-                                                if (adminPassword.equals(adminPasswordFromDB)) {
-                                                    deleteUser(position);
-                                                    return;
-                                                }
-                                            }
-                                            Toast.makeText(listemp.this, "Incorrect Admin Password", Toast.LENGTH_SHORT).show();
-                                            adapter.notifyItemChanged(position);
-                                        }
-                                        @Override
-                                        public void onCancelled(@NonNull DatabaseError databaseError) {
-                                            Toast.makeText(listemp.this, "Failed to retrieve Admin Password", Toast.LENGTH_SHORT).show();
-                                            adapter.notifyItemChanged(position);
-                                        }
-                                    });
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser != null) {
+                String currentUserUid = currentUser.getUid();
+                DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users").child(currentUserUid);
+                usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            String userRole = dataSnapshot.child("poste").getValue(String.class);
+                            if (userRole != null) {
+                                if (userRole.equals("Admin")) {
+                                    showPasswordDialog(position, "Admin");
+                                } else if (userRole.equals("Chef personnelle")) {
+                                    showPasswordDialog(position, "Chef");
                                 } else {
-                                    Toast.makeText(listemp.this, "Please enter Admin Password", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(listemp.this, "You don't have permission to delete users", Toast.LENGTH_SHORT).show();
                                     adapter.notifyItemChanged(position);
                                 }
-                            }
-                        })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
+                            } else {
+                                // User role not found
+                                Toast.makeText(listemp.this, "User role not found", Toast.LENGTH_SHORT).show();
                                 adapter.notifyItemChanged(position);
                             }
-                        })
-                        .show();
-                testD = true;
+                        } else {
+                            // User data does not exist
+                            Toast.makeText(listemp.this, "User data not found", Toast.LENGTH_SHORT).show();
+                            adapter.notifyItemChanged(position);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Toast.makeText(listemp.this, "Failed to retrieve user data", Toast.LENGTH_SHORT).show();
+                        adapter.notifyItemChanged(position);
+                    }
+                });
+            } else {
+                Toast.makeText(listemp.this, "Current user not found", Toast.LENGTH_SHORT).show();
+                adapter.notifyItemChanged(position);
             }
         }
+        private void showPasswordDialog(final int position, final String role) {
+            final EditText input = new EditText(listemp.this);
+            input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            AlertDialog.Builder builder = new AlertDialog.Builder(listemp.this);
+            builder.setView(input);
+            builder.setMessage("Enter " + role + " Password:")
+                    .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            String password = input.getText().toString().trim();
+                            if (!TextUtils.isEmpty(password)) {
+                                // Validate password based on role
+                                validatePassword(position, role, password);
+                            } else {
+                                Toast.makeText(listemp.this, "Please enter " + role + " Password", Toast.LENGTH_SHORT).show();
+                                adapter.notifyItemChanged(position);
+                            }
+                        }
+                    })
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            adapter.notifyItemChanged(position);
+                        }
+                    })
+                    .show();
+        }
+        private void validatePassword(final int position, final String role, String enteredPassword) {
+            DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+            Query roleQuery = usersRef.orderByChild("poste").equalTo(role).limitToFirst(1);
+            roleQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                        String passwordFromDB = userSnapshot.child("password").getValue(String.class);
+                        if (enteredPassword.equals(passwordFromDB)) {
+                            deleteUser(position);
+                            return;
+                        }
+                    }
+                    Toast.makeText(listemp.this, "Incorrect " + role + " Password", Toast.LENGTH_SHORT).show();
+                    adapter.notifyItemChanged(position);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(listemp.this, "Failed to retrieve " + role + " Password", Toast.LENGTH_SHORT).show();
+                    adapter.notifyItemChanged(position);
+                }
+            });
+        }
+
         private void deleteUser(final int position) {
             final User userToDelete = userList.get(position);
             final ProgressDialog progressDialog = ProgressDialog.show(listemp.this, "", "Please wait deleting...", true);
@@ -309,24 +359,22 @@ public class listemp extends AppCompatActivity {
                                             if (error == null) {
                                                 userList.remove(userToDelete);
                                                 adapter.notifyItemRemoved(position);
-                                                Toast.makeText(listemp.this, "User deleted", Toast.LENGTH_SHORT).show();
+                                                firebaseUser.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                        if (task.isSuccessful()) {
+                                                            Toast.makeText(listemp.this, "User Deleted", Toast.LENGTH_SHORT).show();
+                                                            signInAdmin();
+                                                        } else {
+                                                            Toast.makeText(listemp.this, "Failed to delete user from Firebase Authentication: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    }
+                                                });
                                             } else {
                                                 Toast.makeText(listemp.this, "Failed to delete user data from Realtime Database: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                                             }
                                         }
                                     });
-                                    // Check if the deleted user is the current user
-                                    if (!userUID.equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
-                                        // If not, delete the authentication session
-                                        firebaseUser.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                if (!task.isSuccessful()) {
-                                                    Toast.makeText(listemp.this, "Failed to delete user authentication: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
-                                        });
-                                    }
                                 } else {
                                     Toast.makeText(listemp.this, "Failed to get current user", Toast.LENGTH_SHORT).show();
                                 }
@@ -335,6 +383,41 @@ public class listemp extends AppCompatActivity {
                             }
                         }
                     });
+        }
+
+        private void signInAdmin() {
+            DatabaseReference adminRef = FirebaseDatabase.getInstance().getReference("users");
+            Query adminQuery = adminRef.orderByChild("poste").equalTo("Admin").limitToFirst(1);
+
+            adminQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        for (DataSnapshot adminSnapshot : dataSnapshot.getChildren()) {
+                            String adminEmail = adminSnapshot.child("email").getValue(String.class);
+                            String adminPassword = adminSnapshot.child("password").getValue(String.class);
+
+                            FirebaseAuth.getInstance().signInWithEmailAndPassword(adminEmail, adminPassword)
+                                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<AuthResult> task) {
+                                            if (task.isSuccessful()) {
+                                            } else {
+                                                Toast.makeText(listemp.this, "Failed to sign in admin: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    });
+                        }
+                    } else {
+                        Toast.makeText(listemp.this, "Admin credentials not found", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(listemp.this, "Failed to retrieve admin credentials: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
@@ -351,7 +434,8 @@ public class listemp extends AppCompatActivity {
         startActivity(intent);
     }
     private void gohome() {
-        finish();
+        Intent intent=new Intent(listemp.this, home.class);
+        startActivity(intent);
     }
     @Override
     public void onBackPressed() {

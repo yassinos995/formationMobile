@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 public class User implements Serializable {
     private String name;
+    private String uid;
     private String Cin;
     private String email;
     private String phoneNumber;
@@ -70,4 +71,14 @@ public class User implements Serializable {
     public void setPassword(String password) {
         this.password = password;
     }
+
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
 }

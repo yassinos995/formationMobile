@@ -93,7 +93,7 @@ public class addcmd extends AppCompatActivity {
                 List<String> transporterNames = new ArrayList<>();
                 transporterNames.add("Select Transporter");
 
-                Map<String, String> transporterMap = new HashMap<>(); // Map to store UID and corresponding name
+                Map<String, String> transporterMap = new HashMap<>();
 
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     String userId = snapshot.getKey();
@@ -102,43 +102,34 @@ public class addcmd extends AppCompatActivity {
 
                     if (role != null && role.equals("Transporter")) {
                         transporterNames.add(name);
-                        transporterMap.put(name, userId); // Store UID corresponding to name
+                        transporterMap.put(name, userId);
                     }
                 }
 
                 spinnerAdapter.clear();
                 spinnerAdapter.addAll(transporterNames);
-
-                // Set a listener to store the selected UID
                 transporterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                         String selectedName = parent.getItemAtPosition(position).toString();
                         if (!selectedName.equals("Select Transporter")) {
                             String selectedUid = transporterMap.get(selectedName);
-                            // Store the selected UID wherever needed
                         }
                     }
 
                     @Override
                     public void onNothingSelected(AdapterView<?> parent) {
-                        // Handle case where nothing is selected
                     }
                 });
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Handle database error
                 Toast.makeText(addcmd.this, "Failed to retrieve users", Toast.LENGTH_SHORT).show();
             }
         });
     }
-
-
-
     private void addCommand() {
-        // Get input values
         String date = dateEdit.getText().toString().trim();
         String desc = descEdit.getText().toString().trim();
         String dest = destEdit.getText().toString().trim();
@@ -173,34 +164,25 @@ public class addcmd extends AppCompatActivity {
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                         String selectedTransporterUid = snapshot.getKey();
                         saveCommand(date, desc, dest, selectedTransporterUid);
-                    }
-                }
-            }
-
+                    }}}
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(addcmd.this, "Failed to retrieve transporter UID", Toast.LENGTH_SHORT).show();
             }
         });
     }
-
     private void saveCommand(String date, String desc, String dest, String selectedTransporterUid) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             String commandId = databaseReference.push().getKey();
-
-            // Set default value for "Etat" field
             String defaultEtat = "Not Completed";
-
             commande command = new commande();
             command.setDateLimite(date);
             command.setDesc(desc);
             command.setDestination(dest);
             command.setIdtransporter(selectedTransporterUid);
-            command.setEtat(defaultEtat); // Set default value for "Etat"
-
+            command.setEtat(defaultEtat);
             databaseReference.child(commandId).setValue(command);
-
             Toast.makeText(this, "Command added successfully", Toast.LENGTH_SHORT).show();
             finish();
 

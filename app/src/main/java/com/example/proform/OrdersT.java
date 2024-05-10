@@ -87,13 +87,11 @@ public class OrdersT extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     GetTokenResult tokenResult = task.getResult();
                     if (tokenResult != null) {
-                        boolean isAdmin = tokenResult.getClaims().get("admin") != null && (Boolean) tokenResult.getClaims().get("admin");
-                        adapter = new CommandAdapter(context, isAdmin);
-                        adapter.setCommands(commands, commandIds); // Pass both lists to the adapter
+                        adapter = new CommandAdapter(context);
+                        adapter.setCommands(commands, commandIds);
                         recyclerView.setAdapter(adapter);
                     }
                 } else {
-                    // Handle error
                 }
             });
         }

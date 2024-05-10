@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/drawer_layout_listeCommand"
+    android:id="@+id/drawer_layout_listeTest"
     android:fitsSystemWindows="true"
     tools:openDrawer="start">
     <LinearLayout
@@ -13,17 +13,17 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
         <ImageButton
-            android:id="@+id/id_menuLC"
+            android:id="@+id/id_menuLT"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/menu_ic"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
         <TextView
-            android:id="@+id/listeCommand"
+            android:id="@+id/listeTests"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Liste Commands"
+            android:text="Liste Test"
             android:textColor="@color/my_primary"
             android:paddingStart="100dp"
             android:textSize="22dp"
@@ -44,5 +44,4 @@
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header"
         app:menu="@menu/nav_menu" />
-
 </androidx.drawerlayout.widget.DrawerLayout>

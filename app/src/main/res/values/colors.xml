@@ -10,6 +10,6 @@
     <color name="my_primary">#5E35B1</color>
     <color name="lavender">#E6E6FA</color>
     <color name="my_secondary">#673AB7</color>
-    <color name="rejected_color">#FF0000</color>
+    <color name="rejected_color">#D0B32020</color>
     <color name="completed_color">#1CA61C</color>
 </resources>

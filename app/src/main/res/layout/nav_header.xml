@@ -8,7 +8,6 @@
     android:padding="16dp"
     android:background="@drawable/headerbkg"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
-
     <TextView
         android:layout_width="135dp"
         android:layout_height="44dp"
@@ -16,7 +15,6 @@
         android:textColor="@color/white"
         android:textSize="16dp"
         android:textStyle="bold" />
-
     <ImageView
         android:layout_width="72dp"
         android:layout_height="41dp"
