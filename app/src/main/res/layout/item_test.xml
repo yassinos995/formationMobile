@@ -1,0 +1,35 @@
+<!-- item_test.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/id_transporter_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Id Transporter"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/test_alcool_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Test Alcool"
+        android:textSize="14sp" />
+    <TextView
+        android:id="@+id/test_reconnaissance_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Test Reconnaissance"
+        android:textSize="14sp" />
+
+    <ImageView
+        android:id="@+id/go_test_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/icontests"
+        android:contentDescription="Go Test"/>
+
+</LinearLayout>
