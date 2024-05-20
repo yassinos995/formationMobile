@@ -31,7 +31,6 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
     private List<String> commandIds;
 
     public CommandAdapter(Context context) {
-
         this.context = context;
     }
 
@@ -48,6 +47,7 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
                 .inflate(R.layout.card_item_layout, parent, false);
         return new ViewHolder(view);
     }
+
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if (commandList != null && position < commandList.size()) {
@@ -67,7 +67,7 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()) {
                             User userData = snapshot.getValue(User.class);
-                            if (userData != null && userData.getPoste().equals("Transporter")) {
+                            if (userData != null && "Transporter".equals(userData.getPoste())) {
                                 // Show the buttons only for Transporter
                                 if ("Not Completed".equals(command.getEtat())) {
                                     holder.btnCompleted.setVisibility(View.VISIBLE);
@@ -95,9 +95,6 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
         }
     }
 
-
-
-
     private void updateEtat(int position, String etat) {
         if (position >= 0 && position < commandList.size()) {
             commande command = commandList.get(position);
@@ -112,6 +109,7 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
                     .addOnFailureListener(e -> Toast.makeText(context, "Failed to update Etat: " + e.getMessage(), Toast.LENGTH_SHORT).show());
         }
     }
+
     @Override
     public int getItemCount() {
         return commandList == null ? 0 : commandList.size();
@@ -132,6 +130,11 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
             btnCompleted = itemView.findViewById(R.id.btnCompleted);
             btnRejected = itemView.findViewById(R.id.btnRejected);
             cardView = itemView.findViewById(R.id.cardView);
+
+            // Disable item click by setting an empty click listener
+            itemView.setOnClickListener(v -> {
+                // Do nothing on item click
+            });
         }
     }
 }

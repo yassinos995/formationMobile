@@ -151,8 +151,6 @@ public class home extends AppCompatActivity {
             });
         }
     }
-
-
     private void setupNavigationView() {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -169,6 +167,7 @@ public class home extends AppCompatActivity {
                     openListCommandsActivity();
                     return true;
                 } else if (itemId == R.id.nav_settings) {
+                    openSetting();
                     return true;
                 }else if (itemId == R.id.nav_list_tests) {
                     openListTestsActivity();
@@ -188,6 +187,10 @@ public class home extends AppCompatActivity {
                 }
             }
         });
+    }
+    private void openSetting() {
+        Intent intent = new Intent(home.this, setting.class);
+        startActivity(intent);
     }
 
     private void openListTestsActivity() {

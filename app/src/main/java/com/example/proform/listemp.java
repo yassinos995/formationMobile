@@ -191,9 +191,11 @@ public class listemp extends AppCompatActivity {
         @Override
         public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
             int position = viewHolder.getAdapterPosition();
-            if (!userList.isEmpty()) {
-                if (position >= 0 && position < userList.size()) {
+            if (!userList.isEmpty() && position >= 0 && position < userList.size()) {
+                if (direction == ItemTouchHelper.LEFT) {
                     showPasswordDialog(position);
+                } else if (direction == ItemTouchHelper.RIGHT) {
+                    showUpdateDialog(position);
                 } else {
                     Log.e("SwipeToDelete", "Invalid position: " + position);
                 }
@@ -265,7 +267,7 @@ public class listemp extends AppCompatActivity {
                     .show();
         }
 
-        private void validatePassword(final int position, String enteredPassword) {
+        private void validatePassword(final int position , String enteredPassword) {
             FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
             if (currentUser != null) {
                 AuthCredential credential = EmailAuthProvider.getCredential(currentUser.getEmail(), enteredPassword);
@@ -334,6 +336,61 @@ public class listemp extends AppCompatActivity {
                         }
                     });
         }
+    }
+
+    private void showUpdateDialog(int position) {
+        final EditText input = new EditText(listemp.this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        AlertDialog.Builder builder = new AlertDialog.Builder(listemp.this);
+        builder.setView(input);
+        builder.setMessage("Enter Your Password:")
+                .setPositiveButton("Update", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String password = input.getText().toString().trim();
+                        if (!TextUtils.isEmpty(password)) {
+                            validatePassword2(position, password);
+                        } else {
+                            Toast.makeText(listemp.this, "Please enter your password", Toast.LENGTH_SHORT).show();
+                            adapter.notifyItemChanged(position);
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        adapter.notifyItemChanged(position);
+                    }
+                })
+                .show();
+    }
+    private void validatePassword2(int position, String enteredPassword) {
+        User user = userList.get(position);
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            AuthCredential credential = EmailAuthProvider.getCredential(currentUser.getEmail(), enteredPassword);
+            currentUser.reauthenticate(credential)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                openUpdate(user);
+                            } else {
+                                Toast.makeText(listemp.this, "Incorrect password", Toast.LENGTH_SHORT).show();
+                                adapter.notifyItemChanged(position);
+                            }
+                        }
+                    });
+        } else {
+            Toast.makeText(listemp.this,"User not authenticated", Toast.LENGTH_SHORT).show();
+            adapter.notifyItemChanged(position);
+        }
+        
+    }
+    private void openUpdate(User user) {
+        Intent intent = new Intent(listemp.this, updatep.class);
+        intent.putExtra("user", user); // Pass the user object with the intent
+        startActivity(intent);
     }
     private void signInStoredUser() {
         String storedUid = getUidFromSharedPreferences();

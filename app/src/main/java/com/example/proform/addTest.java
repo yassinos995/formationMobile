@@ -42,7 +42,7 @@ public class addTest extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private FirebaseAuth mAuth;
-    private TextView emailText, cinText, phoneText,emailTextView,cinTextView,phoneTextView, placeholderTextView;
+    private TextView emailText, cinText, phoneText, emailTextView, cinTextView, phoneTextView, placeholderTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,12 +74,7 @@ public class addTest extends AppCompatActivity {
         spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         transporterSpinner.setAdapter(spinnerAdapter);
-        menuButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                drawerLayout.openDrawer(GravityCompat.START);
-            }
-        });
+        menuButton.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
         populateTransporterSpinner();
         submitButton.setOnClickListener(v -> addTestEntry());
     }
@@ -121,12 +116,12 @@ public class addTest extends AppCompatActivity {
     }
 
     private void openListCommandsActivity() {
-        Intent intent=new Intent(addTest.this,listcommand.class);
+        Intent intent = new Intent(addTest.this, listcommand.class);
         startActivity(intent);
     }
 
     private void openListEmployersActivity() {
-        Intent intent=new Intent(addTest.this,listemp.class);
+        Intent intent = new Intent(addTest.this, listemp.class);
         startActivity(intent);
     }
 
@@ -145,30 +140,52 @@ public class addTest extends AppCompatActivity {
                             if ("Admin".equals(currentUserRole)) {
                                 Intent intent = new Intent(addTest.this, home.class);
                                 startActivity(intent);
-                            }else {
+                            } else {
                                 Intent intent = new Intent(addTest.this, HomeChef.class);
                                 startActivity(intent);
                             }
                         }
                     }
                 }
+
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
                     Toast.makeText(addTest.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
-            // User is not authenticated
             Toast.makeText(addTest.this, "User not authenticated", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void logout() {
-        Intent intent=new Intent(addTest.this,MainActivity.class);
+        Intent intent = new Intent(addTest.this, MainActivity.class);
         startActivity(intent);
     }
 
     private void populateTransporterSpinner() {
+        DatabaseReference testsRef = FirebaseDatabase.getInstance().getReference("tests");
+        testsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                List<String> transporterIdsWithTests = new ArrayList<>();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    String transporterId = snapshot.child("idTransporter").getValue(String.class);
+                    if (transporterId != null) {
+                        transporterIdsWithTests.add(transporterId);
+                    }
+                }
+                fetchTransporters(transporterIdsWithTests);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(addTest.this, "Failed to retrieve tests", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void fetchTransporters(List<String> transporterIdsWithTests) {
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -183,12 +200,11 @@ public class addTest extends AppCompatActivity {
                     String name = snapshot.child("name").getValue(String.class);
                     String role = snapshot.child("poste").getValue(String.class);
 
-                    if (role != null && role.equals("Transporter")) {
+                    if (role != null && role.equals("Transporter") && !transporterIdsWithTests.contains(userId)) {
                         transporterNames.add(name);
                         transporterMap.put(name, userId);
                     }
                 }
-
                 spinnerAdapter.clear();
                 spinnerAdapter.addAll(transporterNames);
                 transporterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -197,12 +213,9 @@ public class addTest extends AppCompatActivity {
                         String selectedName = parent.getItemAtPosition(position).toString();
                         if (!selectedName.equals("Select Transporter")) {
                             String selectedUid = transporterMap.get(selectedName);
-                            // Fetch transporter details and update UI
                             fetchTransporterDetails(selectedUid);
                         } else {
-                            // If "Select Transporter" is selected, hide the placeholder TextView
                             placeholderTextView.setVisibility(View.GONE);
-                            // Hide the TextViews initially
                             emailTextView.setVisibility(View.GONE);
                             emailText.setVisibility(View.GONE);
                             cinTextView.setVisibility(View.GONE);
@@ -225,20 +238,26 @@ public class addTest extends AppCompatActivity {
         });
     }
 
-
     private void fetchTransporterDetails(String selectedUid) {
         DatabaseReference transporterRef = FirebaseDatabase.getInstance().getReference("users").child(selectedUid);
         transporterRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-
                     String email = dataSnapshot.child("email").getValue(String.class);
                     String cin = dataSnapshot.child("cin").getValue(String.class);
                     String phone = dataSnapshot.child("phoneNumber").getValue(String.class);
-                    placeholderTextView.setVisibility(View.VISIBLE);
-                    placeholderTextView.setText("Email: " + email + "\nCIN: " + cin + "\nPhone: " + phone);
 
+                    emailText.setText(email);
+                    cinText.setText(cin);
+                    phoneText.setText(phone);
+
+                    emailTextView.setVisibility(View.VISIBLE);
+                    emailText.setVisibility(View.VISIBLE);
+                    cinTextView.setVisibility(View.VISIBLE);
+                    cinText.setVisibility(View.VISIBLE);
+                    phoneTextView.setVisibility(View.VISIBLE);
+                    phoneText.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -248,7 +267,6 @@ public class addTest extends AppCompatActivity {
             }
         });
     }
-
 
     private void addTestEntry() {
         String selectedTransporterName = transporterSpinner.getSelectedItem().toString();
@@ -293,5 +311,4 @@ public class addTest extends AppCompatActivity {
             Toast.makeText(this, "Please select a transporter to add the test", Toast.LENGTH_SHORT).show();
         }
     }
-
 }

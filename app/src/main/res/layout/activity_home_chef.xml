@@ -268,7 +268,52 @@
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/addtestCardView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="24dp"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/addchefPCardView">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="62dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <ImageView
+                            android:id="@+id/AddTestImg"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_marginEnd="16dp"
+                            android:paddingStart="8dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/analyze" />
+                        <TextView
+                            android:id="@+id/AddTesttxt"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="16dp"
+                            android:layout_weight="1"
+                            android:text="Add Test "
+                            android:textStyle="bold"
+                            android:textColor="@android:color/black"
+                            android:textSize="16sp" />
 
+                        <ImageView
+                            android:id="@+id/AddTestArrowIcon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingStart="8dp"
+                            android:src="@drawable/arrow_icon" />
+
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
 
 
             </LinearLayout>

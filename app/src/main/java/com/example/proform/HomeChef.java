@@ -27,7 +27,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class HomeChef extends AppCompatActivity {
-    private CardView AddTransCardViewc, addcommandCardViewc;
+    private CardView AddTransCardViewc, addcommandCardViewc,addtestCardView;
     private BottomNavigationView bottomNavigationView;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
@@ -45,6 +45,7 @@ public class HomeChef extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.bottomNavigationView11);
         AddTransCardViewc = findViewById(R.id.AddTransCardViewc);
         addcommandCardViewc = findViewById(R.id.addcommandCardViewc);
+        addtestCardView = findViewById(R.id.addtestCardView);
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
         menuButton3 = findViewById(R.id.id_menu2);
@@ -62,6 +63,13 @@ public class HomeChef extends AppCompatActivity {
         addcommandCardViewc.setOnClickListener(v -> {
             Intent intent = new Intent(this, addcmd.class);
             startActivity(intent);
+        });
+        addtestCardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeChef.this, addTest.class);
+                startActivity(intent);
+            }
         });
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
@@ -106,7 +114,12 @@ public class HomeChef extends AppCompatActivity {
                     if ("Chef personnelle".equals(poste)) {
                         textView2.setText(userName);
                         textView3.setText(poste);
-                    } else {
+                        MenuItem listEmployersMenuItem = navigationView.getMenu().findItem(R.id.nav_list_employers);
+                        if ("Chef personnelle".equals(poste)) {
+                            listEmployersMenuItem.setTitle("Liste Transporter");
+                        } else {
+                            listEmployersMenuItem.setTitle("Liste Employers");
+                        }
                     }
                 }
             }
@@ -131,8 +144,12 @@ public class HomeChef extends AppCompatActivity {
                 openListCommandsActivity();
                 return true;
             } else if (itemId == R.id.nav_settings) {
+                openSetting();
                 return true;
-            } else if (itemId == R.id.nav_info) {
+            } else if (itemId == R.id.nav_list_tests) {
+                openListTestsActivity();
+                return true;
+            }else if (itemId == R.id.nav_info) {
                 return true;
             } else if (itemId == R.id.nav_share) {
                 shareApp();
@@ -145,6 +162,16 @@ public class HomeChef extends AppCompatActivity {
                 return true;
             }
         });
+    }
+
+    private void openSetting() {
+        Intent intent = new Intent(HomeChef.this, setting.class);
+        startActivity(intent);
+    }
+
+    private void openListTestsActivity() {
+        Intent intent = new Intent(HomeChef.this, listTests.class);
+        startActivity(intent);
     }
 
     private void openListEmployersActivity() {

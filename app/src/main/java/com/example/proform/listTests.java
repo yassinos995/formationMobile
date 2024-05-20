@@ -170,7 +170,6 @@ public class listTests extends AppCompatActivity {
 
         String currentUserUid = currentUser.getUid();
         DatabaseReference currentUserRef = FirebaseDatabase.getInstance().getReference("users").child(currentUserUid);
-
         currentUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {

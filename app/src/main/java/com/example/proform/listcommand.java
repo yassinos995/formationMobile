@@ -1,4 +1,5 @@
 package com.example.proform;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -35,6 +36,7 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
+
 public class listcommand extends AppCompatActivity {
     private RecyclerView recyclerView;
     private CommandAdapter commandAdapter;
@@ -43,6 +45,8 @@ public class listcommand extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private DatabaseReference databaseReference;
+    private boolean isTransporter = false; // Flag to check if the user is a transporter
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,32 +60,34 @@ public class listcommand extends AppCompatActivity {
         recyclerView.setAdapter(commandAdapter);
         setupNavigationView();
         databaseReference = FirebaseDatabase.getInstance().getReference("commands");
-        retrieveCommands();
+        checkUserRoleAndRetrieveCommands();
+
         SharedPreferences sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString("userID", "USER_ID_HERE");
         editor.apply();
+
         menubuttonLC.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback());
-        itemTouchHelper.attachToRecyclerView(recyclerView);
     }
+
     private void openListCommandsActivity() {
         Intent intent = new Intent(this, listcommand.class);
         startActivity(intent);
     }
+
     private void logout() {
-            SharedPreferences sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPref.edit();
-            editor.clear();
-            editor.apply();
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-            finish();
+        SharedPreferences sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.clear();
+        editor.apply();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private void gohome() {
@@ -98,31 +104,31 @@ public class listcommand extends AppCompatActivity {
                             String currentUserRole = currentUser.getPoste();
                             if ("Admin".equals(currentUserRole)) {
                                 Intent intent = new Intent(listcommand.this, home.class);
-
                                 startActivity(intent);
-                            }else if ("Chef personnelle".equals(currentUserRole)) {
+                            } else if ("Chef personnelle".equals(currentUserRole)) {
                                 Intent intent = new Intent(listcommand.this, HomeChef.class);
                                 startActivity(intent);
-                            }else{
+                            } else {
                                 Intent intent = new Intent(listcommand.this, HomeTransporter.class);
                                 startActivity(intent);
                             }
                         }
                     }
                 }
+
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
                     Toast.makeText(listcommand.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
-            // User is not authenticated
             Toast.makeText(listcommand.this, "User not authenticated", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void retrieveCommands() {
-        Query query = databaseReference.orderByKey();
+        String transporterUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        Query query = databaseReference.orderByChild("idtransporter").equalTo(transporterUid);
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -136,13 +142,47 @@ public class listcommand extends AppCompatActivity {
                     commandIds.add(uid);
                 }
                 commandAdapter.setCommands(commandList, commandIds);
+
+                // Attach ItemTouchHelper only if the user is not a transporter
+                if (!isTransporter) {
+                    ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback());
+                    itemTouchHelper.attachToRecyclerView(recyclerView);
+                }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Handle cancellation
             }
         });
     }
+
+    private void checkUserRoleAndRetrieveCommands() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            DatabaseReference currentUserRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUser.getUid());
+            currentUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        User userData = snapshot.getValue(User.class);
+                        if (userData != null && "Transporter".equals(userData.getPoste())) {
+                            isTransporter = true;
+                        } else {
+                            isTransporter = false;
+                        }
+                    }
+                    retrieveCommands(); // Retrieve commands after checking the role
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.e("RoleCheck", "Failed to retrieve user data: " + error.getMessage());
+                }
+            });
+        }
+    }
+
     private void setupNavigationView() {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -157,15 +197,14 @@ public class listcommand extends AppCompatActivity {
                 } else if (itemId == R.id.nav_list_commands) {
                     openListCommandsActivity();
                     return true;
-                }  else if (itemId == R.id.nav_list_tests) {
+                } else if (itemId == R.id.nav_list_tests) {
                     openListTestsActivity();
                     return true;
-                }else if (itemId == R.id.nav_settings) {
+                } else if (itemId == R.id.nav_settings) {
                     return true;
                 } else if (itemId == R.id.nav_info) {
                     return true;
                 } else if (itemId == R.id.nav_share) {
-                    // shareApp();
                     return true;
                 } else if (itemId == R.id.nav_logout) {
                     logout();
@@ -179,12 +218,12 @@ public class listcommand extends AppCompatActivity {
     }
 
     private void openListTestsActivity() {
-        Intent intent = new Intent(listcommand.this,listTests.class);
+        Intent intent = new Intent(listcommand.this, listTests.class);
         startActivity(intent);
     }
 
     private void openListEmployersActivity() {
-        Intent intent = new Intent(listcommand.this,listemp.class);
+        Intent intent = new Intent(listcommand.this, listemp.class);
         startActivity(intent);
     }
 
@@ -254,6 +293,7 @@ public class listcommand extends AppCompatActivity {
 
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
         }
+
         private void deleteCommand(final int position) {
             String commandId = commandList.get(position).getUid();
             DatabaseReference commandRef = FirebaseDatabase.getInstance().getReference("commands").child(commandId);
@@ -270,7 +310,5 @@ public class listcommand extends AppCompatActivity {
                 }
             });
         }
-
-
     }
 }
