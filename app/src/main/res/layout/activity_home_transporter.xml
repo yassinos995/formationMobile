@@ -9,7 +9,7 @@
     android:fitsSystemWindows="true"
     tools:openDrawer="start"
     android:background="@android:color/transparent"
-    tools:context=".MainActivity">
+    tools:context=".HomeTransporter">
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -23,7 +23,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/transparent"
-    tools:context=".MainActivity">
+    tools:context=".HomeTransporter">
 
     <ScrollView
         android:id="@+id/scrollView2"
@@ -75,19 +75,29 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="yassin rebhi"
+                        android:text="poste"
                         android:textColor="@color/white"
                         android:textStyle="bold"
                         app:layout_constraintStart_toStartOf="@id/textView"
                         app:layout_constraintTop_toBottomOf="@id/textView" />
-                    
+                    <TextView
+                        android:id="@+id/textView3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="120dp"
+                        android:layout_marginTop="16dp"
+                        android:text="user"
+                        android:textColor="@color/white"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
 
                     <TextView
                         android:id="@+id/rt"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Ready to GOO !"
-                        android:paddingStart="65dp"
+                        android:paddingStart="53dp"
                         android:textColor="@color/white"
                         android:textSize="30sp"
                         android:textStyle="bold"

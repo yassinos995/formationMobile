@@ -1,5 +1,4 @@
 package com.example.proform;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,8 +8,8 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -20,22 +19,23 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.example.proform.model.CommandAdapter;
+import com.example.proform.model.User;
 import com.example.proform.model.commande;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-
 import java.util.ArrayList;
 import java.util.List;
-
 public class listcommand extends AppCompatActivity {
-
     private RecyclerView recyclerView;
     private CommandAdapter commandAdapter;
     private List<commande> commandList;
@@ -43,7 +43,6 @@ public class listcommand extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private DatabaseReference databaseReference;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,9 +56,11 @@ public class listcommand extends AppCompatActivity {
         recyclerView.setAdapter(commandAdapter);
         setupNavigationView();
         databaseReference = FirebaseDatabase.getInstance().getReference("commands");
-
         retrieveCommands();
-
+        SharedPreferences sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("userID", "USER_ID_HERE");
+        editor.apply();
         menubuttonLC.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -73,20 +74,51 @@ public class listcommand extends AppCompatActivity {
         Intent intent = new Intent(this, listcommand.class);
         startActivity(intent);
     }
-
-    private void openListEmployersActivity() {
-        Intent intent = new Intent(this, listemp.class);
-        startActivity(intent);
-    }
-
     private void logout() {
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
+            SharedPreferences sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.clear();
+            editor.apply();
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
     }
 
     private void gohome() {
-        Intent intent = new Intent(this, home.class);
-        startActivity(intent);
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String currentUserUid = currentUser.getUid();
+            DatabaseReference currentUserRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserUid);
+            currentUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        User currentUser = dataSnapshot.getValue(User.class);
+                        if (currentUser != null) {
+                            String currentUserRole = currentUser.getPoste();
+                            if ("Admin".equals(currentUserRole)) {
+                                Intent intent = new Intent(listcommand.this, home.class);
+
+                                startActivity(intent);
+                            }else if ("Chef personnelle".equals(currentUserRole)) {
+                                Intent intent = new Intent(listcommand.this, HomeChef.class);
+                                startActivity(intent);
+                            }else{
+                                Intent intent = new Intent(listcommand.this, HomeTransporter.class);
+                                startActivity(intent);
+                            }
+                        }
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(listcommand.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // User is not authenticated
+            Toast.makeText(listcommand.this, "User not authenticated", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void retrieveCommands() {
@@ -111,7 +143,6 @@ public class listcommand extends AppCompatActivity {
             }
         });
     }
-
     private void setupNavigationView() {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -126,7 +157,10 @@ public class listcommand extends AppCompatActivity {
                 } else if (itemId == R.id.nav_list_commands) {
                     openListCommandsActivity();
                     return true;
-                } else if (itemId == R.id.nav_settings) {
+                }  else if (itemId == R.id.nav_list_tests) {
+                    openListTestsActivity();
+                    return true;
+                }else if (itemId == R.id.nav_settings) {
                     return true;
                 } else if (itemId == R.id.nav_info) {
                     return true;
@@ -142,6 +176,16 @@ public class listcommand extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void openListTestsActivity() {
+        Intent intent = new Intent(listcommand.this,listTests.class);
+        startActivity(intent);
+    }
+
+    private void openListEmployersActivity() {
+        Intent intent = new Intent(listcommand.this,listemp.class);
+        startActivity(intent);
     }
 
     private class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
@@ -164,7 +208,6 @@ public class listcommand extends AppCompatActivity {
             int position = viewHolder.getAdapterPosition();
             if (position >= 0 && position < commandList.size()) {
                 if (direction == ItemTouchHelper.LEFT) {
-                    // Delete command
                     deleteCommand(position);
                 } else if (direction == ItemTouchHelper.RIGHT) {
                     updateCommand(position);
@@ -211,7 +254,6 @@ public class listcommand extends AppCompatActivity {
 
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
         }
-
         private void deleteCommand(final int position) {
             String commandId = commandList.get(position).getUid();
             DatabaseReference commandRef = FirebaseDatabase.getInstance().getReference("commands").child(commandId);

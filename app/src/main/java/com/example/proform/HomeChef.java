@@ -36,13 +36,12 @@ public class HomeChef extends AppCompatActivity {
     private TextView textView3;
     private static final int REQUEST_CODE_ADD_TRANSPORTER = 1002;
 
-    private User currentUser; // Define currentUser variable
+    private User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_chef);
-
         bottomNavigationView = findViewById(R.id.bottomNavigationView11);
         AddTransCardViewc = findViewById(R.id.AddTransCardViewc);
         addcommandCardViewc = findViewById(R.id.addcommandCardViewc);
@@ -51,7 +50,6 @@ public class HomeChef extends AppCompatActivity {
         menuButton3 = findViewById(R.id.id_menu2);
         textView2 = findViewById(R.id.textView2);
         textView3 = findViewById(R.id.textView3);
-
         setupNavigationView();
 
         menuButton3.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
@@ -160,7 +158,8 @@ public class HomeChef extends AppCompatActivity {
     }
 
     private void goHome() {
-        drawerLayout.closeDrawers();
+        Intent intent = new Intent(this, HomeChef.class);
+        startActivity(intent);
     }
 
     private void shareApp() {

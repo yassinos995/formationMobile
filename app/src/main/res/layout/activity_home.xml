@@ -25,7 +25,7 @@
       android:layout_width="match_parent"
       android:layout_height="match_parent"
       android:background="@android:color/transparent"
-      tools:context=".MainActivity">
+      tools:context=".home">
 
     <ScrollView
         android:id="@+id/scrollView2"
@@ -75,22 +75,22 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/textView3"
+                android:id="@+id/textView2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="130dp"
+                android:layout_marginStart="120dp"
                 android:layout_marginTop="16dp"
-                android:text="Poste"
+                android:text="user"
                 android:textColor="@color/white"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/textView2"
+                android:id="@+id/textView3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="yassin rebhi"
+                android:text="poste"
                 android:textColor="@color/white"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="@id/textView"
@@ -127,11 +127,12 @@
                 app:layout_constraintStart_toStartOf="@+id/imageView"
                 app:layout_constraintTop_toTopOf="@+id/imageView2"
                 app:layout_constraintVertical_bias="1.0" />
+
             <EditText
                 android:id="@+id/editTextText"
                 android:layout_width="0dp"
                 android:layout_height="50dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="60dp"
                 android:background="@drawable/edittext1_back"
                 android:drawableStart="@drawable/k15"
                 android:drawablePadding="8dp"
@@ -140,6 +141,7 @@
                 android:inputType="text"
                 android:padding="8dp"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/textView2" />
           </androidx.constraintlayout.widget.ConstraintLayout>
@@ -258,6 +260,7 @@
 
           </LinearLayout>
         </androidx.cardview.widget.CardView>
+
         <androidx.cardview.widget.CardView
             android:id="@+id/addcommandCardView"
             android:layout_width="match_parent"
@@ -271,15 +274,11 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/addchefPCardView">
-
-
           <LinearLayout
               android:layout_width="match_parent"
               android:layout_height="62dp"
               android:gravity="center_vertical"
               android:orientation="horizontal">
-
-
             <ImageView
                 android:id="@+id/addCommandImg"
                 android:layout_width="56dp"
@@ -303,6 +302,54 @@
 
             <ImageView
                 android:id="@+id/addCommandPArrowIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="8dp"
+                android:src="@drawable/arrow_icon" />
+
+          </LinearLayout>
+        </androidx.cardview.widget.CardView>
+        <androidx.cardview.widget.CardView
+            android:id="@+id/addtestCardView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/addchefPCardView">
+          <LinearLayout
+              android:layout_width="match_parent"
+              android:layout_height="62dp"
+              android:gravity="center_vertical"
+              android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/AddTestImg"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginEnd="16dp"
+                android:paddingStart="8dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/analyze" />
+
+
+            <TextView
+                android:id="@+id/AddTesttxt"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:layout_weight="1"
+                android:text="Add Test "
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:textSize="16sp" />
+
+            <ImageView
+                android:id="@+id/AddTestArrowIcon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingStart="8dp"

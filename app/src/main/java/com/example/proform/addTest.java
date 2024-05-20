@@ -5,23 +5,20 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.DatePicker;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.proform.model.Test;
 import com.example.proform.model.User;
-import com.example.proform.model.commande;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -31,73 +28,62 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
-public class addcmd extends AppCompatActivity {
-
-    private EditText dateEdit, descEdit, destEdit;
+public class addTest extends AppCompatActivity {
     private Spinner transporterSpinner;
-    Calendar myCalendar;
     private Button submitButton;
+    private DatabaseReference databaseReference;
+    private ArrayAdapter<String> spinnerAdapter;
     private ImageButton menuButton;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
-    private DatabaseReference databaseReference;
-    private ArrayAdapter<String> spinnerAdapter;
     private FirebaseAuth mAuth;
+    private TextView emailText, cinText, phoneText,emailTextView,cinTextView,phoneTextView, placeholderTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_addcmd);
-
+        setContentView(R.layout.activity_add_test);
         mAuth = FirebaseAuth.getInstance();
-
-        databaseReference = FirebaseDatabase.getInstance().getReference("commands");
-
-        drawerLayout = findViewById(R.id.drawer_layout);
-        navigationView = findViewById(R.id.nav_view);
-        dateEdit = findViewById(R.id.dateEdit);
-        descEdit = findViewById(R.id.descEdit);
-        destEdit = findViewById(R.id.destEdit);
+        databaseReference = FirebaseDatabase.getInstance().getReference("tests");
         transporterSpinner = findViewById(R.id.transporterSpinner);
         submitButton = findViewById(R.id.buttonSubmit);
-        menuButton = findViewById(R.id.id_menu);
-        myCalendar = Calendar.getInstance();
+        emailTextView = findViewById(R.id.EmailTextView);
+        cinTextView = findViewById(R.id.CinlTextView);
+        phoneTextView = findViewById(R.id.PhoneTextView);
+        emailText = findViewById(R.id.EmailText);
+        cinText = findViewById(R.id.CinText);
+        phoneText = findViewById(R.id.PhoneText);
+        placeholderTextView = findViewById(R.id.placeholderTextView);
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
+        menuButton = findViewById(R.id.id_menu);
+        setupNavigationView();
+        emailTextView.setVisibility(View.GONE);
+        emailText.setVisibility(View.GONE);
+        cinTextView.setVisibility(View.GONE);
+        cinText.setVisibility(View.GONE);
+        phoneTextView.setVisibility(View.GONE);
+        phoneText.setVisibility(View.GONE);
+        placeholderTextView.setVisibility(View.GONE);
+
         spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         transporterSpinner.setAdapter(spinnerAdapter);
-        setupNavigationView();
         menuButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
-
         populateTransporterSpinner();
-        final DatePickerDialog.OnDateSetListener dateSetListener = (view, year, monthOfYear, dayOfMonth) -> {
-            myCalendar.set(Calendar.YEAR, year);
-            myCalendar.set(Calendar.MONTH, monthOfYear);
-            myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-            updateDateLabel();
-        };
-        dateEdit.setOnClickListener(v -> new DatePickerDialog(addcmd.this, dateSetListener,
-                myCalendar.get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
-                myCalendar.get(Calendar.DAY_OF_MONTH)).show());
-
-        submitButton.setOnClickListener(v -> addCommand());
+        submitButton.setOnClickListener(v -> addTestEntry());
     }
+
     private void setupNavigationView() {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -116,12 +102,12 @@ public class addcmd extends AppCompatActivity {
                 } else if (itemId == R.id.nav_settings) {
                     return true;
                 }else if (itemId == R.id.nav_list_tests) {
-                  //  openListTestsActivity();
+                    //  openListTestsActivity();
                     return true;
                 } else if (itemId == R.id.nav_info) {
                     return true;
                 } else if (itemId == R.id.nav_share) {
-                //   shareApp();
+                    //   shareApp();
                     return true;
                 } else if (itemId == R.id.nav_logout) {
                     logout();
@@ -133,6 +119,17 @@ public class addcmd extends AppCompatActivity {
             }
         });
     }
+
+    private void openListCommandsActivity() {
+        Intent intent=new Intent(addTest.this,listcommand.class);
+        startActivity(intent);
+    }
+
+    private void openListEmployersActivity() {
+        Intent intent=new Intent(addTest.this,listemp.class);
+        startActivity(intent);
+    }
+
     private void gohome() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
@@ -146,11 +143,10 @@ public class addcmd extends AppCompatActivity {
                         if (currentUser != null) {
                             String currentUserRole = currentUser.getPoste();
                             if ("Admin".equals(currentUserRole)) {
-                                Intent intent = new Intent(addcmd.this, home.class);
-
+                                Intent intent = new Intent(addTest.this, home.class);
                                 startActivity(intent);
                             }else {
-                                Intent intent = new Intent(addcmd.this, HomeChef.class);
+                                Intent intent = new Intent(addTest.this, HomeChef.class);
                                 startActivity(intent);
                             }
                         }
@@ -158,35 +154,20 @@ public class addcmd extends AppCompatActivity {
                 }
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-                    Toast.makeText(addcmd.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(addTest.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
             // User is not authenticated
-            Toast.makeText(addcmd.this, "User not authenticated", Toast.LENGTH_SHORT).show();
+            Toast.makeText(addTest.this, "User not authenticated", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void openListEmployersActivity() {
-        Intent intent=new Intent(addcmd.this,listemp.class);
-        startActivity(intent);
-    }
-
-    private void openListCommandsActivity() {
-        Intent intent=new Intent(addcmd.this,listcommand.class);
-        startActivity(intent);
-    }
-
     private void logout() {
-        Intent intent=new Intent(addcmd.this,MainActivity.class);
+        Intent intent=new Intent(addTest.this,MainActivity.class);
         startActivity(intent);
     }
 
-    private void updateDateLabel() {
-        String myFormat = "MM/dd/yy EEEE";
-        SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.US);
-        dateEdit.setText(sdf.format(myCalendar.getTime()));
-    }
     private void populateTransporterSpinner() {
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -216,6 +197,18 @@ public class addcmd extends AppCompatActivity {
                         String selectedName = parent.getItemAtPosition(position).toString();
                         if (!selectedName.equals("Select Transporter")) {
                             String selectedUid = transporterMap.get(selectedName);
+                            // Fetch transporter details and update UI
+                            fetchTransporterDetails(selectedUid);
+                        } else {
+                            // If "Select Transporter" is selected, hide the placeholder TextView
+                            placeholderTextView.setVisibility(View.GONE);
+                            // Hide the TextViews initially
+                            emailTextView.setVisibility(View.GONE);
+                            emailText.setVisibility(View.GONE);
+                            cinTextView.setVisibility(View.GONE);
+                            cinText.setVisibility(View.GONE);
+                            phoneTextView.setVisibility(View.GONE);
+                            phoneText.setVisibility(View.GONE);
                         }
                     }
 
@@ -227,69 +220,77 @@ public class addcmd extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(addcmd.this, "Failed to retrieve users", Toast.LENGTH_SHORT).show();
+                Toast.makeText(addTest.this, "Failed to retrieve users", Toast.LENGTH_SHORT).show();
             }
         });
     }
-    private void addCommand() {
-        String date = dateEdit.getText().toString().trim();
-        String desc = descEdit.getText().toString().trim();
-        String dest = destEdit.getText().toString().trim();
-        String selectedTransporterName = transporterSpinner.getSelectedItem().toString();
 
-        if (TextUtils.isEmpty(date) || TextUtils.isEmpty(desc) || TextUtils.isEmpty(dest) || TextUtils.isEmpty(selectedTransporterName)) {
-            Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        Calendar currentDateTime = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yy", Locale.US);
-        try {
-            Date selectedDate = sdf.parse(date);
-            if (selectedDate != null) {
-                Calendar selectedDateTime = Calendar.getInstance();
-                selectedDateTime.setTime(selectedDate);
-                if (selectedDateTime.compareTo(currentDateTime) <= 0) {
-                    Toast.makeText(this, "Please select a date and time in the future", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-            }
-        } catch (ParseException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
-        usersRef.orderByChild("name").equalTo(selectedTransporterName).addListenerForSingleValueEvent(new ValueEventListener() {
+
+    private void fetchTransporterDetails(String selectedUid) {
+        DatabaseReference transporterRef = FirebaseDatabase.getInstance().getReference("users").child(selectedUid);
+        transporterRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        String selectedTransporterUid = snapshot.getKey();
-                        saveCommand(date, desc, dest, selectedTransporterUid);
-                    }}}
+
+                    String email = dataSnapshot.child("email").getValue(String.class);
+                    String cin = dataSnapshot.child("cin").getValue(String.class);
+                    String phone = dataSnapshot.child("phoneNumber").getValue(String.class);
+                    placeholderTextView.setVisibility(View.VISIBLE);
+                    placeholderTextView.setText("Email: " + email + "\nCIN: " + cin + "\nPhone: " + phone);
+
+                }
+            }
+
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(addcmd.this, "Failed to retrieve transporter UID", Toast.LENGTH_SHORT).show();
+                Toast.makeText(addTest.this, "Failed to retrieve transporter details", Toast.LENGTH_SHORT).show();
             }
         });
     }
-    private void saveCommand(String date, String desc, String dest, String selectedTransporterUid) {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            String commandId = databaseReference.push().getKey();
-            String defaultEtat = "Not Completed";
-            commande command = new commande();
-            command.setDateLimite(date);
-            command.setDesc(desc);
-            command.setDestination(dest);
-            command.setIdtransporter(selectedTransporterUid);
-            command.setEtat(defaultEtat);
-            databaseReference.child(commandId).setValue(command);
-            Toast.makeText(this, "Command added successfully", Toast.LENGTH_SHORT).show();
-            finish();
-            dateEdit.setText("");
-            descEdit.setText("");
-            destEdit.setText("");
+
+
+    private void addTestEntry() {
+        String selectedTransporterName = transporterSpinner.getSelectedItem().toString();
+        String email = emailText.getText().toString();
+        String cin = cinText.getText().toString();
+        String phone = phoneText.getText().toString();
+
+        if (!email.isEmpty() && !cin.isEmpty() && !phone.isEmpty()) {
+            FirebaseUser currentUser = mAuth.getCurrentUser();
+            if (currentUser != null) {
+                String testId = databaseReference.push().getKey();
+                Test test = new Test();
+                test.setIdTransporter(selectedTransporterName);
+
+                DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+                usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            String name = snapshot.child("name").getValue(String.class);
+                            String uid = snapshot.getKey();
+                            if (name != null && name.equals(selectedTransporterName)) {
+                                Map<String, Object> testDetails = new HashMap<>();
+                                testDetails.put("idTransporter", uid);
+                                databaseReference.child(testId).setValue(testDetails);
+
+                                Toast.makeText(addTest.this, "Test added successfully", Toast.LENGTH_SHORT).show();
+                                finish();
+                                return;
+                            }
+                        }
+                        Toast.makeText(addTest.this, "Selected transporter not found", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Toast.makeText(addTest.this, "Failed to retrieve transporter details", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        } else {
+            Toast.makeText(this, "Please select a transporter to add the test", Toast.LENGTH_SHORT).show();
         }
     }
 

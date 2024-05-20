@@ -1,6 +1,7 @@
 package com.example.proform.model;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,8 +14,13 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proform.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
 
@@ -25,6 +31,7 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
     private List<String> commandIds;
 
     public CommandAdapter(Context context) {
+
         this.context = context;
     }
 
@@ -44,25 +51,51 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if (commandList != null && position < commandList.size()) {
-            commande command = commandList.get(position);
+            commande command = commandList.get(holder.getAdapterPosition());
             holder.dateTextView.setText("Date Limite: " + command.getDateLimite());
             holder.descTextView.setText("Description: " + command.getDesc());
             holder.destTextView.setText("Destination: " + command.getDestination());
             holder.etatTextView.setText("Etat: " + command.getEtat());
             holder.transporterTextView.setText("idtransporter: " + command.getIdtransporter());
 
-            if ("Not Completed".equals(command.getEtat())) {
-                holder.btnCompleted.setVisibility(View.VISIBLE);
-                holder.btnRejected.setVisibility(View.VISIBLE);
-                holder.btnCompleted.setOnClickListener(v -> updateEtat(position, "Completed"));
-                holder.btnRejected.setOnClickListener(v -> updateEtat(position, "Rejected"));
-            } else {
-                holder.btnCompleted.setVisibility(View.GONE);
-                holder.btnRejected.setVisibility(View.GONE);
-            }
+            // Check if the current user's role is "Transporter"
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser != null) {
+                DatabaseReference currentUserRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUser.getUid());
+                currentUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            User userData = snapshot.getValue(User.class);
+                            if (userData != null && userData.getPoste().equals("Transporter")) {
+                                // Show the buttons only for Transporter
+                                if ("Not Completed".equals(command.getEtat())) {
+                                    holder.btnCompleted.setVisibility(View.VISIBLE);
+                                    holder.btnRejected.setVisibility(View.VISIBLE);
+                                    holder.btnCompleted.setOnClickListener(v -> updateEtat(holder.getAdapterPosition(), "Completed"));
+                                    holder.btnRejected.setOnClickListener(v -> updateEtat(holder.getAdapterPosition(), "Rejected"));
+                                } else {
+                                    holder.btnCompleted.setVisibility(View.GONE);
+                                    holder.btnRejected.setVisibility(View.GONE);
+                                }
+                            } else {
+                                // Hide the buttons for other roles
+                                holder.btnCompleted.setVisibility(View.GONE);
+                                holder.btnRejected.setVisibility(View.GONE);
+                            }
+                        }
+                    }
 
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("RoleCheck", "Failed to retrieve user data: " + error.getMessage());
+                    }
+                });
+            }
         }
     }
+
+
 
 
     private void updateEtat(int position, String etat) {
@@ -79,8 +112,6 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
                     .addOnFailureListener(e -> Toast.makeText(context, "Failed to update Etat: " + e.getMessage(), Toast.LENGTH_SHORT).show());
         }
     }
-
-
     @Override
     public int getItemCount() {
         return commandList == null ? 0 : commandList.size();

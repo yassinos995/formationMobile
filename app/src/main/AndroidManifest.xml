@@ -18,16 +18,13 @@
         android:theme="@style/Theme.Proform"
         tools:targetApi="31">
         <activity
-            android:name=".ListTransporters"
+            android:name=".addTest"
             android:exported="false" />
         <activity
             android:name=".listTests"
             android:exported="false" />
         <activity
             android:name=".UpdateCmd"
-            android:exported="false" />
-        <activity
-            android:name=".listempch"
             android:exported="false" />
         <activity
             android:name=".listcommand"

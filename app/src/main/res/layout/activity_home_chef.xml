@@ -67,7 +67,7 @@
                             android:id="@+id/textView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="44dp"
+                            android:layout_marginStart="49dp"
                             android:layout_marginTop="16dp"
                             android:text="Welcome"
                             android:textColor="@color/white"
@@ -75,20 +75,20 @@
                             app:layout_constraintTop_toTopOf="parent" />
 
                         <TextView
-                            android:id="@+id/textView2"
+                            android:id="@+id/textView3"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="yassin rebhi"
+                            android:text="user"
                             android:textColor="@color/white"
                             android:textStyle="bold"
                             app:layout_constraintStart_toStartOf="@id/textView"
                             app:layout_constraintTop_toBottomOf="@id/textView" />
                         <TextView
-                            android:id="@+id/textView3"
+                            android:id="@+id/textView2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="130dp"
+                            android:layout_marginStart="111dp"
                             android:layout_marginTop="16dp"
                             android:text="Poste"
                             android:textColor="@color/white"
@@ -138,7 +138,7 @@
                             android:id="@+id/editTextText"
                             android:layout_width="0dp"
                             android:layout_height="50dp"
-                            android:layout_marginTop="16dp"
+                            android:layout_marginTop="80dp"
                             android:background="@drawable/edittext1_back"
                             android:drawableStart="@drawable/k15"
                             android:drawablePadding="8dp"
@@ -147,6 +147,7 @@
                             android:inputType="text"
                             android:padding="8dp"
                             app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintHorizontal_bias="0.0"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toBottomOf="@id/textView2" />
                     </androidx.constraintlayout.widget.ConstraintLayout>

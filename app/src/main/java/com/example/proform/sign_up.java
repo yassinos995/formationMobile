@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,7 +16,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.proform.model.User;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -33,7 +38,8 @@ public class sign_up extends AppCompatActivity {
     private DatabaseReference DatabaseReference;
     private static final String mail_regex = "^[A-Za-z0-9+_.-]+@(.+)$";
     private ProgressDialog progressDialog;
-
+    private static final String KEY_UID = "uid";
+    private static final String PREFS_NAME = "UserPrefs";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,7 +47,6 @@ public class sign_up extends AppCompatActivity {
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Please wait...");
         progressDialog.setCancelable(false);
-
         nameEditText = findViewById(R.id.id_name);
         emailEditText = findViewById(R.id.id_emails);
         passwordEditText = findViewById(R.id.id_passwords);
@@ -54,7 +59,10 @@ public class sign_up extends AppCompatActivity {
         btn_s.setOnClickListener(v -> signUpUser());
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
         if (user != null) {
+            String currentUserUid = currentUser.getUid();
+            saveUidToSharedPreferences(currentUserUid);
             DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid());
             userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
@@ -147,6 +155,8 @@ public class sign_up extends AppCompatActivity {
                     sendUserData(name, Cin, email, phoneNumber, poste, passwordEditText.getText().toString().trim());
 
                     Toast.makeText(this, "Registration done! Please check your email address.", Toast.LENGTH_SHORT).show();
+                    signInStoredUser();
+                    finish();
                 } else {
                     progressDialog.dismiss();
                     Log.e("EmailVerification", "Email verification failed: " + task.getException().getMessage());
@@ -154,6 +164,47 @@ public class sign_up extends AppCompatActivity {
                     Toast.makeText(this, "Email verification failed. Please try again.", Toast.LENGTH_SHORT).show();
                 }
             });
+        }
+    }
+
+    private void signInStoredUser() {
+        String storedUid = getUidFromSharedPreferences();
+        if (storedUid != null) {
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(storedUid);
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        User storedUser = dataSnapshot.getValue(User.class);
+                        if (storedUser != null) {
+                            String email = storedUser.getEmail();
+                            String password = storedUser.getPassword();
+                            FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+                                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<AuthResult> task) {
+                                            if (task.isSuccessful()) {
+                                            } else {
+                                                Toast.makeText(sign_up.this, "Failed to sign in user: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    });
+                        } else {
+                            Toast.makeText(sign_up.this, "Stored user data is null", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(sign_up.this, "User data does not exist", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(sign_up.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // UID not available in SharedPreferences
+            Toast.makeText(sign_up.this, "Stored UID not found", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -195,5 +246,15 @@ public class sign_up extends AppCompatActivity {
         } else {
             return true;
         }
+    }
+    private void saveUidToSharedPreferences(String uid) {
+        SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit();
+        editor.putString(KEY_UID, uid);
+        editor.apply();
+    }
+
+    private String getUidFromSharedPreferences() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getString(KEY_UID, null);
     }
 }

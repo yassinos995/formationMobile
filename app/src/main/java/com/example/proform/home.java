@@ -7,7 +7,9 @@ import androidx.cardview.widget.CardView;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -17,6 +19,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.proform.model.User;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -28,7 +31,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class home extends AppCompatActivity {
-    private CardView AddTransCardView, addChefPCardView, addcommandCardView;
+    private CardView AddTransCardView, addChefPCardView, addcommandCardView,addtestCardView;
     private BottomNavigationView bottomNavigationView;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
@@ -36,7 +39,6 @@ public class home extends AppCompatActivity {
     private TextView textView2;
     private TextView textView3;
     private static final int REQUEST_CODE_ADD_TRANSPORTER = 1001;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,20 +47,19 @@ public class home extends AppCompatActivity {
         AddTransCardView = findViewById(R.id.AddTransCardView);
         addChefPCardView = findViewById(R.id.addchefPCardView);
         addcommandCardView = findViewById(R.id.addcommandCardView);
+        addtestCardView = findViewById(R.id.addtestCardView);
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
         menuButton = findViewById(R.id.id_menu);
         textView2 = findViewById(R.id.textView2);
         textView3 = findViewById(R.id.textView3);
         setupNavigationView();
-
         menuButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
-
         bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -99,6 +100,13 @@ public class home extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(home.this, addcmd.class);
+                startActivity(intent);
+            }
+        });
+        addtestCardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(home.this, addTest.class);
                 startActivity(intent);
             }
         });
@@ -165,7 +173,8 @@ public class home extends AppCompatActivity {
                 }else if (itemId == R.id.nav_list_tests) {
                     openListTestsActivity();
                     return true;
-                } else if (itemId == R.id.nav_info) {
+                }
+              else if (itemId == R.id.nav_info) {
                     return true;
                 } else if (itemId == R.id.nav_share) {
                     shareApp();
@@ -190,19 +199,47 @@ public class home extends AppCompatActivity {
         Intent intent = new Intent(home.this, listcommand.class);
         startActivity(intent);
     }
-
     private void openListEmployersActivity() {
         Intent intent = new Intent(home.this, listemp.class);
         startActivity(intent);
     }
 
     private void gohome() {
-    }
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String currentUserUid = currentUser.getUid();
+            DatabaseReference currentUserRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserUid);
+            currentUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        User currentUser = dataSnapshot.getValue(User.class);
+                        if (currentUser != null) {
+                            String currentUserRole = currentUser.getPoste();
+                            if ("Admin".equals(currentUserRole)) {
+                                Intent intent = new Intent(home.this, home.class);
 
+                                startActivity(intent);
+                            }else {
+                                Intent intent = new Intent(home.this, HomeChef.class);
+                                startActivity(intent);
+                            }
+                        }
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(home.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // User is not authenticated
+            Toast.makeText(home.this, "User not authenticated", Toast.LENGTH_SHORT).show();
+        }
+    }
     private void shareApp() {
         Toast.makeText(this, "Mazelna ma gadinahech", Toast.LENGTH_SHORT).show();
     }
-
     private void logout() {
         Intent intent = new Intent(home.this, MainActivity.class);
         startActivity(intent);
