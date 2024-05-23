@@ -21,18 +21,15 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     private List<User> userList;
     private DatabaseReference testsRef;
     private OnSwipeListener onSwipeListener;
-    private boolean isListForTests;
 
-    public UserAdapter(Context context, List<User> userList, boolean isListForTests) {
+    public UserAdapter(Context context, List<User> userList) {
         this.context = context;
         this.userList = userList != null ? userList : new ArrayList<>();
-        this.isListForTests = isListForTests;
-        testsRef = FirebaseDatabase.getInstance().getReference("tests");
     }
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        int layoutRes = isListForTests ? R.layout.list_itemtest : R.layout.list_item;
+        int layoutRes = R.layout.list_item;
         View view = LayoutInflater.from(context).inflate(layoutRes, parent, false);
         return new ViewHolder(view);
     }
@@ -40,45 +37,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         User user = userList.get(position);
         holder.bind(user);
-        if (isListForTests) {
-            holder.plusIcon.setVisibility(View.VISIBLE);
-            holder.plusIcon.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    showConfirmationDialog(user);
-                }
-            });
-        } else {
-           // holder.plusIcon.setVisibility(View.GONE);
-        }
-    }
-    private void showConfirmationDialog(User user) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setMessage("Are you sure you want to add a test for " + user.getName() + "?")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        addTestForUser(user);
-                    }
-                })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
-                .show();
-    }
-
-    private void addTestForUser(User user) {
-        String userId = user.getUid();
-        String testName = "Test";
-        String testResult = null;
-        Test test = new Test(userId, testResult, testName);
-        String testId = testsRef.push().getKey();
-        testsRef.child(testId).setValue(test);
-    }
-
+            }
     @Override
     public int getItemCount() {
         return userList.size();
@@ -89,7 +48,6 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         TextView nameTextView;
         TextView posteLabelTextView;
         TextView posteTextView;
-        ImageButton plusIcon;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);

@@ -69,14 +69,14 @@ public class listemp extends AppCompatActivity {
         setContentView(R.layout.activity_listemp);
         mAuth = FirebaseAuth.getInstance();
         testD=false;
-        adapter = new UserAdapter(this, userList, false);
+        adapter = new UserAdapter(this, userList);
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         menubuttonL=findViewById(R.id.id_menuL);
         drawerLayout = findViewById(R.id.drawer_layout_listemp);
         navigationView = findViewById(R.id.nav_view);
         userList = new ArrayList<>();
-        adapter = new UserAdapter(this, userList,testD);
+        adapter = new UserAdapter(this, userList);
         recyclerView.setAdapter(adapter);
         setupNavigationView();
         FirebaseUser currentUser = mAuth.getCurrentUser();

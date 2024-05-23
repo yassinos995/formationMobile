@@ -13,8 +13,10 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.proform.model.Test;
 import com.example.proform.model.User;
-import com.example.proform.model.UserAdapter;
+import com.example.proform.model.UserTest;
+import com.example.proform.model.UserTestAdapter;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -31,8 +33,8 @@ import java.util.Set;
 
 public class listTests extends AppCompatActivity {
     private RecyclerView recyclerView;
-    private UserAdapter adapter;
-    private List<User> userList;
+    private UserTestAdapter adapter;
+    private List<UserTest> userTestList;
     private FirebaseAuth mAuth;
     private ImageButton menubuttonL;
     private DrawerLayout drawerLayout;
@@ -52,8 +54,8 @@ public class listTests extends AppCompatActivity {
         menubuttonL = findViewById(R.id.id_menuLT);
         drawerLayout = findViewById(R.id.drawer_layout_listeTest);
         navigationView = findViewById(R.id.nav_view);
-        userList = new ArrayList<>();
-        adapter = new UserAdapter(this, userList, testD);
+        userTestList = new ArrayList<>();
+        adapter = new UserTestAdapter(this, userTestList);
         recyclerView.setAdapter(adapter);
         setupNavigationView();
 
@@ -64,9 +66,10 @@ public class listTests extends AppCompatActivity {
             }
         });
 
-        fetchUsersFromTests();
+        fetchTests();
     }
-    private void fetchUsersFromTests() {
+
+    private void fetchTests() {
         DatabaseReference testsRef = FirebaseDatabase.getInstance().getReference("tests");
 
         testsRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -79,7 +82,7 @@ public class listTests extends AppCompatActivity {
                         transporterIds.add(idTransporter);
                     }
                 }
-                fetchUsers(transporterIds);
+                fetchUsers(transporterIds, dataSnapshot);
             }
 
             @Override
@@ -90,19 +93,27 @@ public class listTests extends AppCompatActivity {
         });
     }
 
-    private void fetchUsers(Set<String> transporterIds) {
+    private void fetchUsers(Set<String> transporterIds, DataSnapshot testsSnapshot) {
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
 
         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                userList.clear();
+                userTestList.clear();
                 for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                     String userId = userSnapshot.getKey();
                     if (userId != null && transporterIds.contains(userId)) {
                         User user = userSnapshot.getValue(User.class);
                         if (user != null) {
-                            userList.add(user);
+                            for (DataSnapshot testSnapshot : testsSnapshot.getChildren()) {
+                                String idTransporter = testSnapshot.child("idTransporter").getValue(String.class);
+                                if (userId.equals(idTransporter)) {
+                                    String testAlcool = testSnapshot.child("testAlcool").getValue(String.class);
+                                    String testReconnaissance = testSnapshot.child("testReconnaissance").getValue(String.class);
+                                    UserTest userTest = new UserTest(user.getName(), user.getEmail(), idTransporter, testAlcool, testReconnaissance);
+                                    userTestList.add(userTest);
+                                }
+                            }
                         }
                     }
                 }

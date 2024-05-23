@@ -33,18 +33,18 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/posteLabelTextView"
+            android:id="@+id/EmailLabelTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
-            android:text="Poste :"
+            android:text="Email :"
             android:textColor="@color/black"
             android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/nameTextView" />
         <TextView
-            android:id="@+id/posteTextView"
+            android:id="@+id/EmailTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -52,7 +52,75 @@
             android:text=""
             android:textColor="@color/black"
             android:textSize="16sp"
-            app:layout_constraintStart_toEndOf="@id/posteLabelTextView"
+            app:layout_constraintStart_toEndOf="@id/EmailLabelTextView"
             app:layout_constraintTop_toBottomOf="@id/nameTextView" />
+
+        <TextView
+            android:id="@+id/RecLabelTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:text="TestR :"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/EmailLabelTextView" />
+        <TextView
+            android:id="@+id/RecTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:text=""
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            app:layout_constraintStart_toEndOf="@id/RecLabelTextView"
+            app:layout_constraintTop_toBottomOf="@id/EmailTextView" />
+        <TextView
+            android:id="@+id/ConLabelTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:text="TestC :"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/RecLabelTextView" />
+        <TextView
+            android:id="@+id/ConTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:text=""
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            app:layout_constraintStart_toEndOf="@id/RecLabelTextView"
+            app:layout_constraintTop_toBottomOf="@id/RecTextView" />
+        <TextView
+            android:id="@+id/IdTLabelTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:text="idT :"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ConLabelTextView" />
+        <TextView
+            android:id="@+id/IdTTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:text=""
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            app:layout_constraintStart_toEndOf="@id/RecLabelTextView"
+            app:layout_constraintTop_toBottomOf="@id/ConTextView" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

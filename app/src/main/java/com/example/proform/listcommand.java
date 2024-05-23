@@ -9,6 +9,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
@@ -34,6 +35,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,38 +43,46 @@ public class listcommand extends AppCompatActivity {
     private RecyclerView recyclerView;
     private CommandAdapter commandAdapter;
     private List<commande> commandList;
-    private ImageButton menubuttonLC;
+    private ImageButton menuButtonLC;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private DatabaseReference databaseReference;
     private boolean isTransporter = false; // Flag to check if the user is a transporter
+    private boolean isAdmin = false; // Flag to check if the user is an admin
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_listcommand);
-        menubuttonLC = findViewById(R.id.id_menuLC);
+
+        // Initialize UI components
+        menuButtonLC = findViewById(R.id.id_menuLC);
         drawerLayout = findViewById(R.id.drawer_layout_listeCommand);
         navigationView = findViewById(R.id.nav_view);
         recyclerView = findViewById(R.id.recyclerView);
+
+        // Setup RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         commandAdapter = new CommandAdapter(this);
         recyclerView.setAdapter(commandAdapter);
+
+        // Setup navigation view
         setupNavigationView();
+
+        // Initialize Firebase reference
         databaseReference = FirebaseDatabase.getInstance().getReference("commands");
+
+        // Check user role and retrieve commands
         checkUserRoleAndRetrieveCommands();
 
+        // Store user ID in SharedPreferences
         SharedPreferences sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString("userID", "USER_ID_HERE");
+        editor.putString("userID", "USER_ID_HERE"); // Replace with actual user ID
         editor.apply();
 
-        menubuttonLC.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                drawerLayout.openDrawer(GravityCompat.START);
-            }
-        });
+        // Set menu button click listener
+        menuButtonLC.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
     }
 
     private void openListCommandsActivity() {
@@ -90,7 +100,7 @@ public class listcommand extends AppCompatActivity {
         finish();
     }
 
-    private void gohome() {
+    private void goHome() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String currentUserUid = currentUser.getUid();
@@ -127,34 +137,67 @@ public class listcommand extends AppCompatActivity {
     }
 
     private void retrieveCommands() {
-        String transporterUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        Query query = databaseReference.orderByChild("idtransporter").equalTo(transporterUid);
-        query.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                commandList = new ArrayList<>();
-                List<String> commandIds = new ArrayList<>();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    commande command = snapshot.getValue(commande.class);
-                    String uid = snapshot.getKey();
-                    command.setUid(uid);
-                    commandList.add(command);
-                    commandIds.add(uid);
-                }
-                commandAdapter.setCommands(commandList, commandIds);
+        if (isAdmin) {
+            // Retrieve all commands for admin
+            databaseReference.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    commandList = new ArrayList<>();
+                    List<String> commandIds = new ArrayList<>();
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        commande command = snapshot.getValue(commande.class);
+                        if (command != null) {
+                            String uid = snapshot.getKey();
+                            command.setUid(uid);
+                            commandList.add(command);
+                            commandIds.add(uid);
+                        }
+                    }
+                    commandAdapter.setCommands(commandList, commandIds);
 
-                // Attach ItemTouchHelper only if the user is not a transporter
-                if (!isTransporter) {
+                    // Attach ItemTouchHelper for admin
                     ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback());
                     itemTouchHelper.attachToRecyclerView(recyclerView);
                 }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Handle cancellation
-            }
-        });
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    // Handle cancellation
+                }
+            });
+        } else {
+            // Retrieve only the commands assigned to the transporter
+            String transporterUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            Query query = databaseReference.orderByChild("idtransporter").equalTo(transporterUid);
+            query.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    commandList = new ArrayList<>();
+                    List<String> commandIds = new ArrayList<>();
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        commande command = snapshot.getValue(commande.class);
+                        if (command != null) {
+                            String uid = snapshot.getKey();
+                            command.setUid(uid);
+                            commandList.add(command);
+                            commandIds.add(uid);
+                        }
+                    }
+                    commandAdapter.setCommands(commandList, commandIds);
+
+                    // Attach ItemTouchHelper only if the user is not a transporter
+                    if (!isTransporter) {
+                        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback());
+                        itemTouchHelper.attachToRecyclerView(recyclerView);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    // Handle cancellation
+                }
+            });
+        }
     }
 
     private void checkUserRoleAndRetrieveCommands() {
@@ -166,10 +209,9 @@ public class listcommand extends AppCompatActivity {
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()) {
                         User userData = snapshot.getValue(User.class);
-                        if (userData != null && "Transporter".equals(userData.getPoste())) {
-                            isTransporter = true;
-                        } else {
-                            isTransporter = false;
+                        if (userData != null) {
+                            isTransporter = "Transporter".equals(userData.getPoste());
+                            isAdmin = "Admin".equals(userData.getPoste());
                         }
                     }
                     retrieveCommands(); // Retrieve commands after checking the role
@@ -184,35 +226,32 @@ public class listcommand extends AppCompatActivity {
     }
 
     private void setupNavigationView() {
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                int itemId = item.getItemId();
-                if (itemId == R.id.nav_home) {
-                    gohome();
-                    return true;
-                } else if (itemId == R.id.nav_list_employers) {
-                    openListEmployersActivity();
-                    return true;
-                } else if (itemId == R.id.nav_list_commands) {
-                    openListCommandsActivity();
-                    return true;
-                } else if (itemId == R.id.nav_list_tests) {
-                    openListTestsActivity();
-                    return true;
-                } else if (itemId == R.id.nav_settings) {
-                    return true;
-                } else if (itemId == R.id.nav_info) {
-                    return true;
-                } else if (itemId == R.id.nav_share) {
-                    return true;
-                } else if (itemId == R.id.nav_logout) {
-                    logout();
-                    return true;
-                } else {
-                    drawerLayout.closeDrawers();
-                    return true;
-                }
+        navigationView.setNavigationItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                goHome();
+                return true;
+            } else if (itemId == R.id.nav_list_employers) {
+                openListEmployersActivity();
+                return true;
+            } else if (itemId == R.id.nav_list_commands) {
+                openListCommandsActivity();
+                return true;
+            } else if (itemId == R.id.nav_list_tests) {
+                openListTestsActivity();
+                return true;
+            } else if (itemId == R.id.nav_settings) {
+                return true;
+            } else if (itemId == R.id.nav_info) {
+                return true;
+            } else if (itemId == R.id.nav_share) {
+                return true;
+            } else if (itemId == R.id.nav_logout) {
+                logout();
+                return true;
+            } else {
+                drawerLayout.closeDrawers();
+                return true;
             }
         });
     }
@@ -293,20 +332,16 @@ public class listcommand extends AppCompatActivity {
 
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
         }
-
         private void deleteCommand(final int position) {
             String commandId = commandList.get(position).getUid();
             DatabaseReference commandRef = FirebaseDatabase.getInstance().getReference("commands").child(commandId);
-            commandRef.removeValue(new DatabaseReference.CompletionListener() {
-                @Override
-                public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
-                    if (error == null) {
-                        commandList.remove(position);
-                        commandAdapter.notifyItemRemoved(position);
-                    } else {
-                        Log.e("DeleteCommand", "Failed to delete command: " + error.getMessage());
-                        commandAdapter.notifyItemChanged(position);
-                    }
+            commandRef.removeValue((error, ref) -> {
+                if (error == null) {
+                    commandList.remove(position);
+                    commandAdapter.notifyItemRemoved(position);
+                } else {
+                    Log.e("DeleteCommand", "Failed to delete command: " + error.getMessage());
+                    commandAdapter.notifyItemChanged(position);
                 }
             });
         }

@@ -1,4 +1,5 @@
 package com.example.proform;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -36,14 +37,12 @@ public class updatep extends AppCompatActivity {
         phoneEditText = findViewById(R.id.id_phoneProfileU);
         updateButton = findViewById(R.id.btn_edit_profileU);
         cancelButton = findViewById(R.id.btn_CancelProfileU);
-
         User user = (User) getIntent().getSerializableExtra("user");
         if (user != null) {
             nameEditText.setText(user.getName());
             emailEditText.setText(user.getEmail());
             phoneEditText.setText(user.getPhoneNumber());
         }
-
         updateButton.setOnClickListener(v -> {
             String newName = nameEditText.getText().toString().trim();
             String newEmail = emailEditText.getText().toString().trim();
@@ -84,8 +83,10 @@ public class updatep extends AppCompatActivity {
                 });
             }
         });
-
-
-        cancelButton.setOnClickListener(v -> finish());
+        cancelButton.setOnClickListener(v -> {
+            Intent intent = new Intent(updatep.this, listemp.class);
+            startActivity(intent);
+        });
     }
+
 }

@@ -25,7 +25,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-
 public class HomeChef extends AppCompatActivity {
     private CardView AddTransCardViewc, addcommandCardViewc,addtestCardView;
     private BottomNavigationView bottomNavigationView;
@@ -35,9 +34,7 @@ public class HomeChef extends AppCompatActivity {
     private TextView textView2;
     private TextView textView3;
     private static final int REQUEST_CODE_ADD_TRANSPORTER = 1002;
-
     private User currentUser;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,13 +86,11 @@ public class HomeChef extends AppCompatActivity {
         });
         currentUser = (User) getIntent().getSerializableExtra("currentUser");
     }
-
     @Override
     protected void onResume() {
         super.onResume();
         updateProfileInformation();
     }
-
     private void updateProfileInformation() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
@@ -130,7 +125,6 @@ public class HomeChef extends AppCompatActivity {
             }
         });
     }
-
     private void setupNavigationView() {
         navigationView.setNavigationItemSelectedListener(item -> {
             int itemId = item.getItemId();
@@ -163,22 +157,18 @@ public class HomeChef extends AppCompatActivity {
             }
         });
     }
-
     private void openSetting() {
         Intent intent = new Intent(HomeChef.this, setting.class);
         startActivity(intent);
     }
-
     private void openListTestsActivity() {
         Intent intent = new Intent(HomeChef.this, listTests.class);
         startActivity(intent);
     }
-
     private void openListEmployersActivity() {
         Intent intent = new Intent(this, listemp.class);
         startActivity(intent);
     }
-
     private void openListCommandsActivity() {
         Intent intent = new Intent(this, listcommand.class);
         startActivity(intent);
@@ -199,7 +189,6 @@ public class HomeChef extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
-
     @Override
     public void onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -208,7 +197,6 @@ public class HomeChef extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

@@ -280,7 +280,8 @@ public class addTest extends AppCompatActivity {
                 String testId = databaseReference.push().getKey();
                 Test test = new Test();
                 test.setIdTransporter(selectedTransporterName);
-
+                test.setTestAlcool("InProgress");
+                test.setTestReconnaissance("InProgress");
                 DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
                 usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -291,8 +292,9 @@ public class addTest extends AppCompatActivity {
                             if (name != null && name.equals(selectedTransporterName)) {
                                 Map<String, Object> testDetails = new HashMap<>();
                                 testDetails.put("idTransporter", uid);
+                                testDetails.put("testAlcool", "InProgress");
+                                testDetails.put("testReconnaissance", "InProgress");
                                 databaseReference.child(testId).setValue(testDetails);
-
                                 Toast.makeText(addTest.this, "Test added successfully", Toast.LENGTH_SHORT).show();
                                 finish();
                                 return;
