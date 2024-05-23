@@ -1,7 +1,6 @@
 package com.example.proform;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
@@ -49,6 +48,7 @@ public class listcommand extends AppCompatActivity {
     private DatabaseReference databaseReference;
     private boolean isTransporter = false; // Flag to check if the user is a transporter
     private boolean isAdmin = false; // Flag to check if the user is an admin
+    private boolean isChef = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,23 +66,91 @@ public class listcommand extends AppCompatActivity {
         commandAdapter = new CommandAdapter(this);
         recyclerView.setAdapter(commandAdapter);
 
-        // Setup navigation view
-        setupNavigationView();
-
         // Initialize Firebase reference
         databaseReference = FirebaseDatabase.getInstance().getReference("commands");
 
         // Check user role and retrieve commands
-        checkUserRoleAndRetrieveCommands();
+        checkUserRoleAndSetupNavigation();
 
         // Store user ID in SharedPreferences
         SharedPreferences sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString("userID", "USER_ID_HERE"); // Replace with actual user ID
+        editor.putString("userID", FirebaseAuth.getInstance().getCurrentUser().getUid()); // Store actual user ID
         editor.apply();
 
         // Set menu button click listener
         menuButtonLC.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+    }
+
+    private void checkUserRoleAndSetupNavigation() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            DatabaseReference currentUserRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUser.getUid());
+            currentUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        User userData = snapshot.getValue(User.class);
+                        if (userData != null) {
+                            isTransporter = "Transporter".equals(userData.getPoste());
+                            isAdmin = "Admin".equals(userData.getPoste());
+                            isChef = "Chef personnelle".equals(userData.getPoste());
+                            MenuItem listEmployersMenuItem = navigationView.getMenu().findItem(R.id.nav_list_employers);
+                            if(isChef){
+                                listEmployersMenuItem.setTitle("Liste Transporter");
+                            }else{
+                                listEmployersMenuItem.setTitle("Liste Employers");
+                            }
+
+                            setupNavigationView();
+                            retrieveCommands();
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.e("RoleCheck", "Failed to retrieve user data: " + error.getMessage());
+                }
+            });
+        }
+    }
+
+    private void setupNavigationView() {
+        navigationView.setNavigationItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                goHome();
+                return true;
+            } else if (itemId == R.id.nav_list_employers) {
+                openListEmployersActivity();
+                return true;
+            } else if (itemId == R.id.nav_list_commands) {
+                openListCommandsActivity();
+                return true;
+            } else if (itemId == R.id.nav_list_tests) {
+                openListTestsActivity();
+                return true;
+            } else if (itemId == R.id.nav_settings) {
+                return true;
+            } else if (itemId == R.id.nav_info) {
+                return true;
+            } else if (itemId == R.id.nav_share) {
+                return true;
+            } else if (itemId == R.id.nav_logout) {
+                logout();
+                return true;
+            } else {
+                drawerLayout.closeDrawers();
+                return true;
+            }
+        });
+
+        // Hide specific menu items for transporters
+        if (isTransporter) {
+            navigationView.getMenu().findItem(R.id.nav_list_employers).setVisible(false);
+            navigationView.getMenu().findItem(R.id.nav_list_tests).setVisible(false);
+        }
     }
 
     private void openListCommandsActivity() {
@@ -137,7 +205,7 @@ public class listcommand extends AppCompatActivity {
     }
 
     private void retrieveCommands() {
-        if (isAdmin) {
+        if (isAdmin || isChef) {
             // Retrieve all commands for admin
             databaseReference.addValueEventListener(new ValueEventListener() {
                 @Override
@@ -198,62 +266,6 @@ public class listcommand extends AppCompatActivity {
                 }
             });
         }
-    }
-
-    private void checkUserRoleAndRetrieveCommands() {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            DatabaseReference currentUserRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUser.getUid());
-            currentUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        User userData = snapshot.getValue(User.class);
-                        if (userData != null) {
-                            isTransporter = "Transporter".equals(userData.getPoste());
-                            isAdmin = "Admin".equals(userData.getPoste());
-                        }
-                    }
-                    retrieveCommands(); // Retrieve commands after checking the role
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Log.e("RoleCheck", "Failed to retrieve user data: " + error.getMessage());
-                }
-            });
-        }
-    }
-
-    private void setupNavigationView() {
-        navigationView.setNavigationItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.nav_home) {
-                goHome();
-                return true;
-            } else if (itemId == R.id.nav_list_employers) {
-                openListEmployersActivity();
-                return true;
-            } else if (itemId == R.id.nav_list_commands) {
-                openListCommandsActivity();
-                return true;
-            } else if (itemId == R.id.nav_list_tests) {
-                openListTestsActivity();
-                return true;
-            } else if (itemId == R.id.nav_settings) {
-                return true;
-            } else if (itemId == R.id.nav_info) {
-                return true;
-            } else if (itemId == R.id.nav_share) {
-                return true;
-            } else if (itemId == R.id.nav_logout) {
-                logout();
-                return true;
-            } else {
-                drawerLayout.closeDrawers();
-                return true;
-            }
-        });
     }
 
     private void openListTestsActivity() {
