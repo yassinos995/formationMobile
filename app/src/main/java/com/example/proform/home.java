@@ -84,6 +84,7 @@ public class home extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(home.this, sign_up.class);
                 intent.putExtra("fromHome", true);
+                intent.putExtra("caller", "add_trans");
                 startActivityForResult(intent, REQUEST_CODE_ADD_TRANSPORTER);
             }
         });
@@ -92,6 +93,7 @@ public class home extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(home.this, sign_up.class);
+                intent.putExtra("caller", "add_chef");
                 startActivity(intent);
             }
         });

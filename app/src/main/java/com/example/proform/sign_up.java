@@ -57,7 +57,27 @@ public class sign_up extends AppCompatActivity {
         DatabaseReference = FirebaseDatabase.getInstance().getReference();
         firebaseAuth = FirebaseAuth.getInstance();
         btn_s.setOnClickListener(v -> signUpUser());
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            String caller = extras.getString("caller");
+            if (caller != null && caller.equals("add_trans")) {
+                TextView poste1 = findViewById(R.id.poste1);
+                RadioGroup posteRadioGroup = findViewById(R.id.posteRadioGroup);
+                poste1.setVisibility(View.GONE);
+                posteRadioGroup.setVisibility(View.GONE);
 
+                RadioButton transporterRadioButton = findViewById(R.id.transporterRadioButton);
+                transporterRadioButton.setChecked(true);
+            } else if (caller != null && caller.equals("add_chef")) {
+                TextView poste1 = findViewById(R.id.poste1);
+                RadioGroup posteRadioGroup = findViewById(R.id.posteRadioGroup);
+                poste1.setVisibility(View.GONE);
+                posteRadioGroup.setVisibility(View.GONE);
+
+                RadioButton chefRadioButton = findViewById(R.id.chefPersonnelleRadioButton);
+                chefRadioButton.setChecked(true);
+            }
+        }
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
         if (user != null) {
@@ -93,6 +113,7 @@ public class sign_up extends AppCompatActivity {
             });
         }
     }
+
 
     private void signUpUser() {
         String name = nameEditText.getText().toString().trim();
