@@ -54,7 +54,8 @@
            android:layout_height="wrap_content"
            android:orientation="vertical"
            android:padding="28dp"
-           android:layout_marginBottom="-20dp">
+           android:layout_marginBottom="-20dp"
+           android:background="@color/white">
            <TextView
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
@@ -68,6 +69,7 @@
                android:text="Please login with your informations"
                android:alpha="0.7"
                android:textSize="16sp"
+               android:textColor="@color/black"
               />
           <View
               android:layout_width="wrap_content"
@@ -138,9 +140,9 @@
                android:id="@+id/guide"
                android:layout_gravity="center"
                android:alpha="0.7"
-               android:textSize="16sp"
-               android:onClick="navigateToAnotherPage"
-               />
+               android:textSize="16sp"/>
+           <!-- android:onClick="navigateToAnotherPage"-->
+
 
            <LinearLayout
                android:layout_width="match_parent"
