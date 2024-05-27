@@ -181,7 +181,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="57dp"
                         android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:background="@color/white">
 
 
                         <ImageView
@@ -234,7 +235,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="62dp"
                         android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:background="@color/white">
 
 
                         <ImageView
@@ -285,7 +287,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="62dp"
                         android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:background="@color/white">
                         <ImageView
                             android:id="@+id/AddTestImg"
                             android:layout_width="56dp"

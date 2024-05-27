@@ -1,6 +1,9 @@
 package com.example.proform;
+
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
@@ -9,9 +12,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.proform.model.User;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -26,6 +28,7 @@ public class updatep extends AppCompatActivity {
     private Button updateButton;
     private Button cancelButton;
     private DatabaseReference userRef;
+    private User originalUser;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -37,12 +40,38 @@ public class updatep extends AppCompatActivity {
         phoneEditText = findViewById(R.id.id_phoneProfileU);
         updateButton = findViewById(R.id.btn_edit_profileU);
         cancelButton = findViewById(R.id.btn_CancelProfileU);
-        User user = (User) getIntent().getSerializableExtra("user");
-        if (user != null) {
-            nameEditText.setText(user.getName());
-            emailEditText.setText(user.getEmail());
-            phoneEditText.setText(user.getPhoneNumber());
+
+        originalUser = (User) getIntent().getSerializableExtra("user");
+        if (originalUser != null) {
+            nameEditText.setText(originalUser.getName());
+            emailEditText.setText(originalUser.getEmail());
+            phoneEditText.setText(originalUser.getPhoneNumber());
         }
+
+        updateButton.setEnabled(false);
+
+        TextWatcher textWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // No action needed before text is changed
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // No action needed while text is being changed
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // Enable the update button if any changes are detected
+                updateButton.setEnabled(hasUserChanged());
+            }
+        };
+
+        nameEditText.addTextChangedListener(textWatcher);
+        emailEditText.addTextChangedListener(textWatcher);
+        phoneEditText.addTextChangedListener(textWatcher);
+
         updateButton.setOnClickListener(v -> {
             String newName = nameEditText.getText().toString().trim();
             String newEmail = emailEditText.getText().toString().trim();
@@ -78,15 +107,24 @@ public class updatep extends AppCompatActivity {
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
                         Toast.makeText(updatep.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
-
                     }
                 });
             }
         });
+
         cancelButton.setOnClickListener(v -> {
             Intent intent = new Intent(updatep.this, listemp.class);
             startActivity(intent);
         });
     }
 
+    private boolean hasUserChanged() {
+        String currentName = nameEditText.getText().toString().trim();
+        String currentEmail = emailEditText.getText().toString().trim();
+        String currentPhoneNumber = phoneEditText.getText().toString().trim();
+
+        return !currentName.equals(originalUser.getName()) ||
+                !currentEmail.equals(originalUser.getEmail()) ||
+                !currentPhoneNumber.equals(originalUser.getPhoneNumber());
+    }
 }

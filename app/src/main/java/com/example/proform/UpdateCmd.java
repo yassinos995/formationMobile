@@ -1,6 +1,8 @@
 package com.example.proform;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -16,15 +18,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
-
 public class UpdateCmd extends AppCompatActivity {
     private EditText dateEdit;
     private EditText descEdit;
     private EditText destEdit;
     private Spinner transporterSpinner;
     private Button updateButton;
+    private Button cancelButton;
     private DatabaseReference commandRef;
     private DatabaseReference usersRef;
+    private commande originalCommand;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +39,11 @@ public class UpdateCmd extends AppCompatActivity {
         destEdit = findViewById(R.id.destEdit);
         transporterSpinner = findViewById(R.id.transporterSpinner);
         updateButton = findViewById(R.id.buttonSubmit);
+        cancelButton = findViewById(R.id.buttonCancel);
+        originalCommand=(commande) getIntent().getSerializableExtra("commande");
+        if (originalCommand != null){
 
+        }
         usersRef = FirebaseDatabase.getInstance().getReference("users");
 
         String commandId = getIntent().getStringExtra("commandId");
@@ -49,7 +56,9 @@ public class UpdateCmd extends AppCompatActivity {
                         commande command = dataSnapshot.getValue(commande.class);
                         if (command != null) {
                             populateFields(command);
-                        }}}
+                        }
+                    }
+                }
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
                     Toast.makeText(UpdateCmd.this, "Failed to retrieve command data: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
@@ -58,18 +67,26 @@ public class UpdateCmd extends AppCompatActivity {
         } else {
             Toast.makeText(this, "No command ID found", Toast.LENGTH_SHORT).show();
         }
+
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 updateCommand();
             }
         });
+
+        cancelButton.setOnClickListener(v -> {
+            Intent intent = new Intent(UpdateCmd.this, listcommand.class);
+            startActivity(intent);
+        });
     }
+
     private void updateCommand() {
         String date = dateEdit.getText().toString().trim();
         String desc = descEdit.getText().toString().trim();
         String dest = destEdit.getText().toString().trim();
         String selectedTransporter = transporterSpinner.getSelectedItem().toString();
+
         commandRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -94,26 +111,13 @@ public class UpdateCmd extends AppCompatActivity {
                     }
                 }
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(UpdateCmd.this, "Failed to retrieve command data: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
-
-
-    private String getTransporterIdByName(String transporterName) {
-
-        if ("Transporter A".equals(transporterName)) {
-            return "1";
-        } else if ("Transporter B".equals(transporterName)) {
-            return "2";
-        } else {
-            return null;
-        }
-    }
-
-
 
     private void populateFields(commande command) {
         String transporterId = command.getIdtransporter();
@@ -144,5 +148,4 @@ public class UpdateCmd extends AppCompatActivity {
         descEdit.setText(command.getDesc());
         destEdit.setText(command.getDestination());
     }
-
 }

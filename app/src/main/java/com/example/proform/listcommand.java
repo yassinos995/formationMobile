@@ -1,6 +1,7 @@
 package com.example.proform;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
@@ -9,6 +10,7 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
@@ -16,16 +18,23 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.example.proform.model.CommandAdapter;
 import com.example.proform.model.User;
 import com.example.proform.model.commande;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -53,32 +62,25 @@ public class listcommand extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_listcommand);
 
-        // Initialize UI components
+        setContentView(R.layout.activity_listcommand);
         menuButtonLC = findViewById(R.id.id_menuLC);
         drawerLayout = findViewById(R.id.drawer_layout_listeCommand);
         navigationView = findViewById(R.id.nav_view);
         recyclerView = findViewById(R.id.recyclerView);
-
-        // Setup RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         commandAdapter = new CommandAdapter(this);
         recyclerView.setAdapter(commandAdapter);
 
-        // Initialize Firebase reference
         databaseReference = FirebaseDatabase.getInstance().getReference("commands");
 
-        // Check user role and retrieve commands
         checkUserRoleAndSetupNavigation();
-
-        // Store user ID in SharedPreferences
         SharedPreferences sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString("userID", FirebaseAuth.getInstance().getCurrentUser().getUid()); // Store actual user ID
+        editor.putString("userID", FirebaseAuth.getInstance().getCurrentUser().getUid());
         editor.apply();
 
-        // Set menu button click listener
+
         menuButtonLC.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
     }
 
@@ -206,7 +208,6 @@ public class listcommand extends AppCompatActivity {
 
     private void retrieveCommands() {
         if (isAdmin || isChef) {
-            // Retrieve all commands for admin
             databaseReference.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -234,7 +235,6 @@ public class listcommand extends AppCompatActivity {
                 }
             });
         } else {
-            // Retrieve only the commands assigned to the transporter
             String transporterUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
             Query query = databaseReference.orderByChild("idtransporter").equalTo(transporterUid);
             query.addValueEventListener(new ValueEventListener() {
@@ -298,9 +298,9 @@ public class listcommand extends AppCompatActivity {
             int position = viewHolder.getAdapterPosition();
             if (position >= 0 && position < commandList.size()) {
                 if (direction == ItemTouchHelper.LEFT) {
-                    deleteCommand(position);
+                    showPasswordDialog(position);
                 } else if (direction == ItemTouchHelper.RIGHT) {
-                    updateCommand(position);
+                    showUpdateDialog(position);
                 }
             } else {
                 Log.e("Swipe", "Invalid position: " + position);
@@ -344,6 +344,57 @@ public class listcommand extends AppCompatActivity {
 
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
         }
+
+
+    private void showPasswordDialog(final int position) {
+        final EditText input = new EditText(listcommand.this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        AlertDialog.Builder builder = new AlertDialog.Builder(listcommand.this);
+        builder.setView(input);
+        builder.setMessage("Enter Your Password:")
+                .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String password = input.getText().toString().trim();
+                        if (!TextUtils.isEmpty(password)) {
+                            validatePassword(position, password);
+                        } else {
+                            Toast.makeText(listcommand.this, "Please enter your password", Toast.LENGTH_SHORT).show();
+                            commandAdapter.notifyItemChanged(position);
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        commandAdapter.notifyItemChanged(position);
+                    }
+                })
+                .show();
+    }
+
+    private void validatePassword(final int position , String enteredPassword) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            AuthCredential credential = EmailAuthProvider.getCredential(currentUser.getEmail(), enteredPassword);
+            currentUser.reauthenticate(credential)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                deleteCommand(position);
+                            } else {
+                                Toast.makeText(listcommand.this, "Incorrect password", Toast.LENGTH_SHORT).show();
+                                commandAdapter.notifyItemChanged(position);
+                            }
+                        }
+                    });
+        } else {
+            Toast.makeText(listcommand.this,"User not authenticated", Toast.LENGTH_SHORT).show();
+            commandAdapter.notifyItemChanged(position);
+        }
+    }
+
         private void deleteCommand(final int position) {
             String commandId = commandList.get(position).getUid();
             DatabaseReference commandRef = FirebaseDatabase.getInstance().getReference("commands").child(commandId);
@@ -358,4 +409,62 @@ public class listcommand extends AppCompatActivity {
             });
         }
     }
+
+    private void showUpdateDialog(int position) {
+        final EditText input = new EditText(listcommand.this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        AlertDialog.Builder builder = new AlertDialog.Builder(listcommand.this);
+        builder.setView(input);
+        builder.setMessage("Enter Your Password:")
+                .setPositiveButton("Update", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String password = input.getText().toString().trim();
+                        if (!TextUtils.isEmpty(password)) {
+                            validatePassword2(position, password);
+                        } else {
+                            Toast.makeText(listcommand.this, "Please enter your password", Toast.LENGTH_SHORT).show();
+                            commandAdapter.notifyItemChanged(position);
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        commandAdapter.notifyItemChanged(position);
+                    }
+                })
+                .show();
+    }
+
+    private void validatePassword2(int position, String enteredPassword) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            AuthCredential credential = EmailAuthProvider.getCredential(currentUser.getEmail(), enteredPassword);
+            currentUser.reauthenticate(credential)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                updateCommand(position);
+                            } else {
+                                Toast.makeText(listcommand.this, "Incorrect password", Toast.LENGTH_SHORT).show();
+                                commandAdapter.notifyItemChanged(position);
+                            }
+                        }
+                    });
+        } else {
+            Toast.makeText(listcommand.this,"User not authenticated", Toast.LENGTH_SHORT).show();
+            commandAdapter.notifyItemChanged(position);
+        }
+    }
+
+    private void updateCommand(int position) {
+        commande swipedCommand = commandList.get(position);
+        String uid = swipedCommand.getUid();
+        Intent intent = new Intent(listcommand.this, UpdateCmd.class);
+        intent.putExtra("commandId", uid);
+        startActivity(intent);
+    }
+
 }

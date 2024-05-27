@@ -167,6 +167,9 @@ public class listemp extends AppCompatActivity {
                     return true;
                 } else if (itemId == R.id.nav_settings || itemId == R.id.nav_info || itemId == R.id.nav_share) {
                     return true;
+                }else if (itemId == R.id.nav_list_tests) {
+                    openListTestsActivity();
+                    return true;
                 } else if (itemId == R.id.nav_logout) {
                     logout();
                     return true;
@@ -177,6 +180,12 @@ public class listemp extends AppCompatActivity {
             }
         });
     }
+
+    private void openListTestsActivity() {
+        Intent intent = new Intent(listemp.this, listTests.class);
+        startActivity(intent);
+    }
+
     private class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
         private final ColorDrawable background = new ColorDrawable(Color.RED);
         private final ColorDrawable backgroundU = new ColorDrawable(Color.GRAY);
