@@ -1,14 +1,21 @@
 package com.example.proform;
+
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.AuthCredential;
+
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class setting extends AppCompatActivity {
     private EditText oldPassEditText, newPassEditText, repeatPassEditText;
@@ -51,6 +58,10 @@ public class setting extends AppCompatActivity {
                                     user.updatePassword(newPassword).addOnCompleteListener(task1 -> {
                                         if (task1.isSuccessful()) {
                                             Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show();
+
+                                            // Update the password in the Realtime Database
+                                            updateUserPasswordInDatabase(user.getUid(), newPassword);
+
                                             // Clear fields or redirect to another screen
                                         } else {
                                             Toast.makeText(this, "Failed to update password", Toast.LENGTH_SHORT).show();
@@ -68,4 +79,20 @@ public class setting extends AppCompatActivity {
                     });
         }
     }
+
+    private void updateUserPasswordInDatabase(String userId, String newPassword) {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
+        userRef.child("password").setValue(newPassword)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "changed correctly in firebase ", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed change in firebase", Toast.LENGTH_SHORT).show();
+
+                });
     }
+    public void backhome(View view) {
+        Intent intent = new Intent(setting.this, home.class);
+        startActivity(intent);
+    }
+}

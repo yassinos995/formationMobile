@@ -39,13 +39,13 @@ public class forgetPassword extends AppCompatActivity {
                 emailf.setError("email not valid");
             }else{
                 firebaseAuth.sendPasswordResetEmail(emailS).addOnCompleteListener(task ->{
-         if (task.isSuccessful()){
-             Toast.makeText(this, "Password sent ", Toast.LENGTH_SHORT).show();
-             finish();
-             startActivity(new Intent(forgetPassword.this,MainActivity.class));
-             }else {
-             Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show();
-         }
+                    if (task.isSuccessful()){
+                        Toast.makeText(this, "Password sent ", Toast.LENGTH_SHORT).show();
+                        finish();
+                        startActivity(new Intent(forgetPassword.this,MainActivity.class));
+                    }else {
+                        Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show();
+                    }
                 } );
 
             }
@@ -54,11 +54,11 @@ public class forgetPassword extends AppCompatActivity {
 
 
     }
-public void backlog(View view){
-    Intent intent= new Intent(this, MainActivity.class);
-    startActivity(intent);
+    public void backlog(View view){
+        Intent intent= new Intent(this, MainActivity.class);
+        startActivity(intent);
 
-}
+    }
 
     private boolean validateInput(String email, String password) {
         if (email.isEmpty()) {

@@ -176,6 +176,7 @@ public class home extends AppCompatActivity {
                     return true;
                 }
               else if (itemId == R.id.nav_info) {
+                  openLogo();
                     return true;
                 } else if (itemId == R.id.nav_share) {
                     shareApp();
@@ -190,6 +191,12 @@ public class home extends AppCompatActivity {
             }
         });
     }
+
+    private void openLogo() {
+        Intent intent = new Intent(home.this, LogoAnimation.class);
+        startActivity(intent);
+    }
+
     private void openSetting() {
         Intent intent = new Intent(home.this, setting.class);
         startActivity(intent);
