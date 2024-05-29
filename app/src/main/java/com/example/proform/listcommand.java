@@ -55,25 +55,24 @@ public class listcommand extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private DatabaseReference databaseReference;
-    private boolean isTransporter = false; // Flag to check if the user is a transporter
-    private boolean isAdmin = false; // Flag to check if the user is an admin
+    private boolean isTransporter = false;
+    private boolean isAdmin = false;
     private boolean isChef = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_listcommand);
+
         menuButtonLC = findViewById(R.id.id_menuLC);
         drawerLayout = findViewById(R.id.drawer_layout_listeCommand);
         navigationView = findViewById(R.id.nav_view);
         recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         commandAdapter = new CommandAdapter(this);
         recyclerView.setAdapter(commandAdapter);
-
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         databaseReference = FirebaseDatabase.getInstance().getReference("commands");
-
+        retrieveCommands();
         checkUserRoleAndSetupNavigation();
         SharedPreferences sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -296,23 +295,73 @@ public class listcommand extends AppCompatActivity {
         @Override
         public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
             int position = viewHolder.getAdapterPosition();
-            if (position >= 0 && position < commandList.size()) {
-                if (direction == ItemTouchHelper.LEFT) {
-                    showPasswordDialog(position);
-                } else if (direction == ItemTouchHelper.RIGHT) {
-                    showUpdateDialog(position);
-                }
-            } else {
-                Log.e("Swipe", "Invalid position: " + position);
+            if (direction == ItemTouchHelper.LEFT) {
+                showPasswordDialog(position);
+            } else if (direction == ItemTouchHelper.RIGHT) {
+                showUpdateDialog(position);
             }
         }
 
-        private void updateCommand(int position) {
-            commande swipedCommand = commandList.get(position);
-            String uid = swipedCommand.getUid();
-            Intent intent = new Intent(listcommand.this, UpdateCmd.class);
-            intent.putExtra("commandId", uid);
-            startActivity(intent);
+        private void showPasswordDialog(final int position) {
+            final EditText input = new EditText(listcommand.this);
+            input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            AlertDialog.Builder builder = new AlertDialog.Builder(listcommand.this);
+            builder.setView(input);
+            builder.setMessage("Enter Your Password:")
+                    .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            String password = input.getText().toString().trim();
+                            if (!TextUtils.isEmpty(password)) {
+                                validatePassword(position, password);
+                            } else {
+                                Toast.makeText(listcommand.this, "Please enter your password", Toast.LENGTH_SHORT).show();
+                                commandAdapter.notifyItemChanged(position);
+                            }
+                        }
+                    })
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            commandAdapter.notifyItemChanged(position);
+                        }
+                    })
+                    .show();
+        }
+
+        private void validatePassword(final int position, String enteredPassword) {
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser != null) {
+                AuthCredential credential = EmailAuthProvider.getCredential(currentUser.getEmail(), enteredPassword);
+                currentUser.reauthenticate(credential)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    deleteCommand(position);
+                                } else {
+                                    Toast.makeText(listcommand.this, "Incorrect password", Toast.LENGTH_SHORT).show();
+                                    commandAdapter.notifyItemChanged(position);
+                                }
+                            }
+                        });
+            } else {
+                Toast.makeText(listcommand.this, "User not authenticated", Toast.LENGTH_SHORT).show();
+                commandAdapter.notifyItemChanged(position);
+            }
+        }
+
+        private void deleteCommand(final int position) {
+            String commandId = commandList.get(position).getUid();
+            DatabaseReference commandRef = FirebaseDatabase.getInstance().getReference("commands").child(commandId);
+            commandRef.removeValue((error, ref) -> {
+                if (error == null) {
+                    restartActivity();
+                } else {
+                    Log.e("DeleteCommand", "Failed to delete command: " + error.getMessage());
+                    commandAdapter.notifyItemChanged(position);
+                }
+            });
         }
 
         @Override
@@ -344,71 +393,8 @@ public class listcommand extends AppCompatActivity {
 
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
         }
-
-
-    private void showPasswordDialog(final int position) {
-        final EditText input = new EditText(listcommand.this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        AlertDialog.Builder builder = new AlertDialog.Builder(listcommand.this);
-        builder.setView(input);
-        builder.setMessage("Enter Your Password:")
-                .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String password = input.getText().toString().trim();
-                        if (!TextUtils.isEmpty(password)) {
-                            validatePassword(position, password);
-                        } else {
-                            Toast.makeText(listcommand.this, "Please enter your password", Toast.LENGTH_SHORT).show();
-                            commandAdapter.notifyItemChanged(position);
-                        }
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        commandAdapter.notifyItemChanged(position);
-                    }
-                })
-                .show();
     }
 
-    private void validatePassword(final int position , String enteredPassword) {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            AuthCredential credential = EmailAuthProvider.getCredential(currentUser.getEmail(), enteredPassword);
-            currentUser.reauthenticate(credential)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                deleteCommand(position);
-                            } else {
-                                Toast.makeText(listcommand.this, "Incorrect password", Toast.LENGTH_SHORT).show();
-                                commandAdapter.notifyItemChanged(position);
-                            }
-                        }
-                    });
-        } else {
-            Toast.makeText(listcommand.this,"User not authenticated", Toast.LENGTH_SHORT).show();
-            commandAdapter.notifyItemChanged(position);
-        }
-    }
-
-        private void deleteCommand(final int position) {
-            String commandId = commandList.get(position).getUid();
-            DatabaseReference commandRef = FirebaseDatabase.getInstance().getReference("commands").child(commandId);
-            commandRef.removeValue((error, ref) -> {
-                if (error == null) {
-                    commandList.remove(position);
-                    commandAdapter.notifyItemRemoved(position);
-                } else {
-                    Log.e("DeleteCommand", "Failed to delete command: " + error.getMessage());
-                    commandAdapter.notifyItemChanged(position);
-                }
-            });
-        }
-    }
 
     private void showUpdateDialog(int position) {
         final EditText input = new EditText(listcommand.this);
@@ -466,5 +452,11 @@ public class listcommand extends AppCompatActivity {
         intent.putExtra("commandId", uid);
         startActivity(intent);
     }
+    private void restartActivity() {
+        Intent intent = getIntent();
+        finish();
+        startActivity(intent);
+    }
+
 
 }

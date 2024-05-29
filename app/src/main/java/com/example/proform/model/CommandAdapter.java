@@ -68,7 +68,6 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
                         if (snapshot.exists()) {
                             User userData = snapshot.getValue(User.class);
                             if (userData != null && "Transporter".equals(userData.getPoste())) {
-                                // Show the buttons only for Transporter
                                 if ("Not Completed".equals(command.getEtat())) {
                                     holder.btnCompleted.setVisibility(View.VISIBLE);
                                     holder.btnRejected.setVisibility(View.VISIBLE);
