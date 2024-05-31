@@ -394,8 +394,6 @@ public class listcommand extends AppCompatActivity {
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
         }
     }
-
-
     private void showUpdateDialog(int position) {
         final EditText input = new EditText(listcommand.this);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);

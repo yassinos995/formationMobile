@@ -167,6 +167,36 @@ public class Profil extends AppCompatActivity {
     }
 
     public void backHome(View view) {
-        finish();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String currentUserUid = currentUser.getUid();
+            DatabaseReference currentUserRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserUid);
+            currentUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        User currentUser = dataSnapshot.getValue(User.class);
+                        if (currentUser != null) {
+                            String currentUserRole = currentUser.getPoste();
+                            if ("Admin".equals(currentUserRole)) {
+                                Intent intent = new Intent(Profil.this, home.class);
+
+                                startActivity(intent);
+                            }else {
+                                Intent intent = new Intent(Profil.this, HomeChef.class);
+                                startActivity(intent);
+                            }
+                        }
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(Profil.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // User is not authenticated
+            Toast.makeText(Profil.this, "User not authenticated", Toast.LENGTH_SHORT).show();
+        }
     }
 }

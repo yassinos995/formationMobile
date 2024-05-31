@@ -19,7 +19,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UpdateCmd extends AppCompatActivity {
     private EditText dateEdit;
@@ -31,6 +33,8 @@ public class UpdateCmd extends AppCompatActivity {
     private DatabaseReference commandRef;
     private DatabaseReference usersRef;
     private commande originalCommand;
+    private Map<String, String> transporterNameToIdMap = new HashMap<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,7 +110,8 @@ public class UpdateCmd extends AppCompatActivity {
         String date = dateEdit.getText().toString().trim();
         String desc = descEdit.getText().toString().trim();
         String dest = destEdit.getText().toString().trim();
-        String selectedTransporter = transporterSpinner.getSelectedItem().toString();
+        String selectedTransporterName = transporterSpinner.getSelectedItem().toString();
+        String selectedTransporterId = transporterNameToIdMap.get(selectedTransporterName);  // Get the UID from the map
 
         commandRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -117,7 +122,7 @@ public class UpdateCmd extends AppCompatActivity {
                         existingCommand.setDateLimite(date);
                         existingCommand.setDesc(desc);
                         existingCommand.setDestination(dest);
-                        existingCommand.setIdtransporter(selectedTransporter);
+                        existingCommand.setIdtransporter(selectedTransporterId);  // Use UID for idtransporter
                         commandRef.setValue(existingCommand, (error, ref) -> {
                             if (error == null) {
                                 Toast.makeText(UpdateCmd.this, "Command updated successfully", Toast.LENGTH_SHORT).show();
@@ -137,24 +142,26 @@ public class UpdateCmd extends AppCompatActivity {
         });
     }
 
+
     private void populateFields(commande command) {
         String transporterId = command.getIdtransporter();
         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                List<String> transporterIds = new ArrayList<>();
+                List<String> transporterNames = new ArrayList<>();
                 int selectedIndex = -1;
                 for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                     String userId = userSnapshot.getKey();
                     String userName = userSnapshot.child("name").getValue(String.class);
                     if (userId != null && userName != null) {
-                        transporterIds.add(userName);
+                        transporterNames.add(userName);
+                        transporterNameToIdMap.put(userName, userId);  // Map name to UID
                         if (userId.equals(transporterId)) {
-                            selectedIndex = transporterIds.size() - 1;
+                            selectedIndex = transporterNames.size() - 1;
                         }
                     }
                 }
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(UpdateCmd.this, android.R.layout.simple_spinner_item, transporterIds);
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(UpdateCmd.this, android.R.layout.simple_spinner_item, transporterNames);
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 transporterSpinner.setAdapter(adapter);
                 if (selectedIndex >= 0) {
@@ -173,19 +180,21 @@ public class UpdateCmd extends AppCompatActivity {
         destEdit.setText(command.getDestination());
     }
 
+
     private boolean hasCommandChanged() {
         if (originalCommand == null) {
             return false;
         }
-
         String newDate = dateEdit.getText().toString().trim();
         String newDesc = descEdit.getText().toString().trim();
         String newDest = destEdit.getText().toString().trim();
         String newTransporter = transporterSpinner.getSelectedItem() != null ? transporterSpinner.getSelectedItem().toString() : "";
+        String newTransporterId = transporterNameToIdMap.get(newTransporter);
 
         return !newDate.equals(originalCommand.getDateLimite())
                 || !newDesc.equals(originalCommand.getDesc())
                 || !newDest.equals(originalCommand.getDestination())
-                || !newTransporter.equals(originalCommand.getIdtransporter());
+                || (newTransporterId != null && !newTransporterId.equals(originalCommand.getIdtransporter()));
     }
+
 }
