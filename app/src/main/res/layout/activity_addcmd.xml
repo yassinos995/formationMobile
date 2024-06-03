@@ -33,6 +33,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Add new Command:"
+                android:textColor="@color/black"
                 android:textStyle="bold"
                 android:textSize="26sp"
                 android:layout_marginStart="16dp"

@@ -47,6 +47,21 @@ public class setting extends AppCompatActivity {
             return;
         }
 
+        if (oldPassword.length() < 8) {
+            oldPassEditText.setError("Password must be at least 8 characters");
+            return;
+        }
+
+        if (newPassword.length() < 8) {
+            newPassEditText.setError("Password must be at least 8 characters");
+            return;
+        }
+
+        if (repeatPassword.length() < 8) {
+            repeatPassEditText.setError("Password must be at least 8 characters");
+            return;
+        }
+
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), oldPassword);
@@ -58,23 +73,19 @@ public class setting extends AppCompatActivity {
                                     user.updatePassword(newPassword).addOnCompleteListener(task1 -> {
                                         if (task1.isSuccessful()) {
                                             Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show();
-
-                                            // Update the password in the Realtime Database
                                             updateUserPasswordInDatabase(user.getUid(), newPassword);
-
-                                            // Clear fields or redirect to another screen
                                         } else {
                                             Toast.makeText(this, "Failed to update password", Toast.LENGTH_SHORT).show();
                                         }
                                     });
                                 } else {
-                                    Toast.makeText(this, "New password and repeat password do not match", Toast.LENGTH_SHORT).show();
+                                    repeatPassEditText.setError("New password and repeat password do not match");
                                 }
                             } else {
-                                Toast.makeText(this, "New password must be different from the old password", Toast.LENGTH_SHORT).show();
+                                newPassEditText.setError("New password must be different from the old password");
                             }
                         } else {
-                            Toast.makeText(this, "Incorrect old password", Toast.LENGTH_SHORT).show();
+                            oldPassEditText.setError("Incorrect old password");
                         }
                     });
         }
@@ -84,13 +95,13 @@ public class setting extends AppCompatActivity {
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
         userRef.child("password").setValue(newPassword)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "changed correctly in firebase ", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Password changed successfully in Firebase", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed change in firebase", Toast.LENGTH_SHORT).show();
-
+                    Toast.makeText(this, "Failed to change password in Firebase", Toast.LENGTH_SHORT).show();
                 });
     }
+
     public void backhome(View view) {
         Intent intent = new Intent(setting.this, home.class);
         startActivity(intent);

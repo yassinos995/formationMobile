@@ -252,7 +252,7 @@ public class sign_up extends AppCompatActivity {
         } else if (phoneNumber.length() != 8) {
             phoneNumberEditText.setError("Phone is invalid");
             return false;
-        } else if (password.length() <= 7) {
+        } else if (password.length() < 8) {
             passwordEditText.setError("Password is invalid");
             return false;
         } else if (!repeatPassword.equals(password)) {

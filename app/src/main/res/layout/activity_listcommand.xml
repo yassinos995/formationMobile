@@ -18,6 +18,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/menu_ic"
+            android:backgroundTint="@color/gray"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
         <TextView
@@ -44,5 +45,5 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header"
-        app:menu="@menu/nav_menu" />
+        app:menu="@menu/nav_menu"/>
 </androidx.drawerlayout.widget.DrawerLayout>

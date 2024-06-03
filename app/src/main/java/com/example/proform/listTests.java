@@ -170,7 +170,6 @@ public class listTests extends AppCompatActivity {
                 }
                 adapter.notifyDataSetChanged();
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e("FirebaseError", databaseError.getMessage());

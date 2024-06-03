@@ -63,12 +63,10 @@ public class listcommand extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_listcommand);
-
         menuButtonLC = findViewById(R.id.id_menuLC);
         drawerLayout = findViewById(R.id.drawer_layout_listeCommand);
         navigationView = findViewById(R.id.nav_view);
         recyclerView = findViewById(R.id.recyclerView);
-
         commandAdapter = new CommandAdapter(this);
         recyclerView.setAdapter(commandAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
