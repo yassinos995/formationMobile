@@ -4,18 +4,24 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.core.app.NotificationCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,7 +37,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class home extends AppCompatActivity {
-    private CardView AddTransCardView, addChefPCardView, addcommandCardView,addtestCardView;
+    private CardView AddTransCardView, addChefPCardView, addcommandCardView, addtestCardView;
     private BottomNavigationView bottomNavigationView;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
@@ -39,6 +45,10 @@ public class home extends AppCompatActivity {
     private TextView textView2;
     private TextView textView3;
     private static final int REQUEST_CODE_ADD_TRANSPORTER = 1001;
+    private static final int REQUEST_CODE_POST_NOTIFICATIONS = 1002;
+    private static final int REQUEST_CODE_ADD_COMMAND = 1003;
+    private static final int REQUEST_CODE_ADD_TEST = 1004;
+    private ImageView redCircle;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,7 +63,14 @@ public class home extends AppCompatActivity {
         menuButton = findViewById(R.id.id_menu);
         textView2 = findViewById(R.id.textView2);
         textView3 = findViewById(R.id.textView3);
+        redCircle =findViewById(R.id.imageView2);
+        redCircle.setVisibility(View.GONE);
         setupNavigationView();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE_POST_NOTIFICATIONS);
+            }
+        }
         menuButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -102,9 +119,10 @@ public class home extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(home.this, addcmd.class);
-                startActivity(intent);
+                startActivityForResult(intent, REQUEST_CODE_ADD_COMMAND);
             }
         });
+
         addtestCardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -126,6 +144,38 @@ public class home extends AppCompatActivity {
             fetchCurrentUserProfileFromFirebase();
         }
     }
+    public void showNewCommandNotification() {
+        String channelId = "NEW_COMMAND_NOTIFICATION_CHANNEL";
+        String channelName = "New Command Notification Channel";
+        String channelDescription = "Notification for new commands";
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channelId)
+                .setSmallIcon(R.drawable.bell)
+                .setContentTitle("New Command Added")
+                .setContentText("A new command has been successfully added.")
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+        Intent intent = new Intent(getApplicationContext(), home.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_MUTABLE);
+        builder.setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(channelId, channelName, importance);
+            notificationChannel.setDescription(channelDescription);
+            notificationChannel.setLightColor(Color.GREEN);
+            notificationChannel.enableVibration(true);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
+
+        notificationManager.notify(1, builder.build());
+        redCircle.setVisibility(View.VISIBLE);
+    }
 
     private void fetchCurrentUserProfileFromFirebase() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -141,7 +191,7 @@ public class home extends AppCompatActivity {
                             textView2.setText(userName);
                             textView3.setText(poste);
                         } else {
-
+                            // Handle non-admin users if needed
                         }
                     }
                 }
@@ -153,6 +203,7 @@ public class home extends AppCompatActivity {
             });
         }
     }
+
     private void setupNavigationView() {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -171,12 +222,11 @@ public class home extends AppCompatActivity {
                 } else if (itemId == R.id.nav_settings) {
                     openSetting();
                     return true;
-                }else if (itemId == R.id.nav_list_tests) {
+                } else if (itemId == R.id.nav_list_tests) {
                     openListTestsActivity();
                     return true;
-                }
-              else if (itemId == R.id.nav_info) {
-                  openLogo();
+                } else if (itemId == R.id.nav_info) {
+                    openLogo();
                     return true;
                 } else if (itemId == R.id.nav_share) {
                     shareApp();
@@ -190,6 +240,10 @@ public class home extends AppCompatActivity {
                 }
             }
         });
+    }
+    public void openNotification(View view){
+        Intent intent = new Intent(home.this, Notification.class);
+        startActivity(intent);
     }
 
     private void openLogo() {
@@ -205,12 +259,14 @@ public class home extends AppCompatActivity {
     private void openListTestsActivity() {
         Intent intent = new Intent(home.this, listTests.class);
         startActivity(intent);
+        startActivityForResult(intent, REQUEST_CODE_ADD_TEST);
     }
 
     private void openListCommandsActivity() {
         Intent intent = new Intent(home.this, listcommand.class);
         startActivity(intent);
     }
+
     private void openListEmployersActivity() {
         Intent intent = new Intent(home.this, listemp.class);
         startActivity(intent);
@@ -230,29 +286,31 @@ public class home extends AppCompatActivity {
                             String currentUserRole = currentUser.getPoste();
                             if ("Admin".equals(currentUserRole)) {
                                 Intent intent = new Intent(home.this, home.class);
-
                                 startActivity(intent);
-                            }else {
+                            } else {
                                 Intent intent = new Intent(home.this, HomeChef.class);
                                 startActivity(intent);
                             }
                         }
                     }
                 }
+
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
                     Toast.makeText(home.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
-            // User is not authenticated
             Toast.makeText(home.this, "User not authenticated", Toast.LENGTH_SHORT).show();
         }
     }
+
     private void shareApp() {
         Toast.makeText(this, "Mazelna ma gadinahech", Toast.LENGTH_SHORT).show();
     }
+
     private void logout() {
+        FirebaseAuth.getInstance().signOut();
         Intent intent = new Intent(home.this, MainActivity.class);
         startActivity(intent);
         finish();
@@ -265,6 +323,7 @@ public class home extends AppCompatActivity {
             super.onBackPressed();
         }
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -272,6 +331,45 @@ public class home extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 updateProfileInformation();
             }
+        } else if (requestCode == REQUEST_CODE_ADD_COMMAND) {
+            if (resultCode == RESULT_OK) {
+                showNewCommandNotification();
+            }
+        }else if (requestCode == REQUEST_CODE_ADD_TEST) {
+            if (resultCode == RESULT_OK) {
+                showNewTestNotification();
+            }
         }
     }
-}
+        private void showNewTestNotification() {
+            String channelId = "NEW_TEST_NOTIFICATION_CHANNEL";
+            String channelName = "New Test Notification Channel";
+            String channelDescription = "Notification for new tests";
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channelId)
+                    .setSmallIcon(R.drawable.bell)
+                    .setContentTitle("New Test Added")
+                    .setContentText("A new test has been successfully added.")
+                    .setAutoCancel(true)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+            Intent intent = new Intent(getApplicationContext(), home.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+            PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_MUTABLE);
+            builder.setContentIntent(pendingIntent);
+
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                NotificationChannel notificationChannel = new NotificationChannel(channelId, channelName, importance);
+                notificationChannel.setDescription(channelDescription);
+                notificationChannel.setLightColor(Color.GREEN);
+                notificationChannel.enableVibration(true);
+                notificationManager.createNotificationChannel(notificationChannel);
+            }
+            notificationManager.notify(2, builder.build());
+        }
+
+    }
+

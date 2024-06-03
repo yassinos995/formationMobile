@@ -4,14 +4,23 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.core.app.NotificationCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,7 +43,11 @@ public class HomeChef extends AppCompatActivity {
     private TextView textView2;
     private TextView textView3;
     private static final int REQUEST_CODE_ADD_TRANSPORTER = 1002;
+    private static final int REQUEST_CODE_ADD_COMMAND = 1023;
+    private static final int REQUEST_CODE_POST_NOTIFICATIONS = 1022;
+    private ImageView redCircle;
     private User currentUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,8 +61,14 @@ public class HomeChef extends AppCompatActivity {
         menuButton3 = findViewById(R.id.id_menu2);
         textView2 = findViewById(R.id.textView2);
         textView3 = findViewById(R.id.textView3);
+        redCircle =findViewById(R.id.imageView2);
+        redCircle.setVisibility(View.GONE);
         setupNavigationView();
-
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE_POST_NOTIFICATIONS);
+            }
+        }
         menuButton3.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
         AddTransCardViewc.setOnClickListener(v -> {
@@ -96,6 +115,38 @@ public class HomeChef extends AppCompatActivity {
         if (user != null) {
             fetchCurrentUserProfileFromFirebase(user.getUid());
         }
+    }
+    public void showNewCommandNotification() {
+        String channelId = "NEW_COMMAND_NOTIFICATION_CHANNEL";
+        String channelName = "New Command Notification Channel";
+        String channelDescription = "Notification for new commands";
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channelId)
+                .setSmallIcon(R.drawable.bell)
+                .setContentTitle("New Command Added")
+                .setContentText("A new command has been successfully added.")
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+        Intent intent = new Intent(getApplicationContext(), home.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_MUTABLE);
+        builder.setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(channelId, channelName, importance);
+            notificationChannel.setDescription(channelDescription);
+            notificationChannel.setLightColor(Color.GREEN);
+            notificationChannel.enableVibration(true);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
+
+        notificationManager.notify(1, builder.build());
+        redCircle.setVisibility(View.VISIBLE);
     }
 
     private void fetchCurrentUserProfileFromFirebase(String userId) {
@@ -203,6 +254,10 @@ public class HomeChef extends AppCompatActivity {
         if (requestCode == REQUEST_CODE_ADD_TRANSPORTER) {
             if (resultCode == RESULT_OK) {
                 updateProfileInformation();
+            }
+        } else if (requestCode == REQUEST_CODE_ADD_COMMAND) {
+            if (resultCode == RESULT_OK) {
+                showNewCommandNotification();
             }
         }
     }

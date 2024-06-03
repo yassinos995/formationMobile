@@ -60,7 +60,6 @@ public class addcmd extends AppCompatActivity {
         setContentView(R.layout.activity_addcmd);
 
         mAuth = FirebaseAuth.getInstance();
-
         databaseReference = FirebaseDatabase.getInstance().getReference("commands");
 
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -78,6 +77,7 @@ public class addcmd extends AppCompatActivity {
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         transporterSpinner.setAdapter(spinnerAdapter);
         setupNavigationView();
+
         menuButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -98,6 +98,7 @@ public class addcmd extends AppCompatActivity {
 
         submitButton.setOnClickListener(v -> addCommand());
     }
+
     private void setupNavigationView() {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -115,13 +116,13 @@ public class addcmd extends AppCompatActivity {
                     return true;
                 } else if (itemId == R.id.nav_settings) {
                     return true;
-                }else if (itemId == R.id.nav_list_tests) {
-                  //  openListTestsActivity();
+                } else if (itemId == R.id.nav_list_tests) {
+                    // openListTestsActivity();
                     return true;
                 } else if (itemId == R.id.nav_info) {
                     return true;
                 } else if (itemId == R.id.nav_share) {
-                //   shareApp();
+                    // shareApp();
                     return true;
                 } else if (itemId == R.id.nav_logout) {
                     logout();
@@ -133,6 +134,7 @@ public class addcmd extends AppCompatActivity {
             }
         });
     }
+
     private void gohome() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
@@ -147,15 +149,15 @@ public class addcmd extends AppCompatActivity {
                             String currentUserRole = currentUser.getPoste();
                             if ("Admin".equals(currentUserRole)) {
                                 Intent intent = new Intent(addcmd.this, home.class);
-
                                 startActivity(intent);
-                            }else {
+                            } else {
                                 Intent intent = new Intent(addcmd.this, HomeChef.class);
                                 startActivity(intent);
                             }
                         }
                     }
                 }
+
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
                     Toast.makeText(addcmd.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
@@ -168,17 +170,17 @@ public class addcmd extends AppCompatActivity {
     }
 
     private void openListEmployersActivity() {
-        Intent intent=new Intent(addcmd.this,listemp.class);
+        Intent intent = new Intent(addcmd.this, listemp.class);
         startActivity(intent);
     }
 
     private void openListCommandsActivity() {
-        Intent intent=new Intent(addcmd.this,listcommand.class);
+        Intent intent = new Intent(addcmd.this, listcommand.class);
         startActivity(intent);
     }
 
     private void logout() {
-        Intent intent=new Intent(addcmd.this,MainActivity.class);
+        Intent intent = new Intent(addcmd.this, MainActivity.class);
         startActivity(intent);
     }
 
@@ -187,6 +189,7 @@ public class addcmd extends AppCompatActivity {
         SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.US);
         dateEdit.setText(sdf.format(myCalendar.getTime()));
     }
+
     private void populateTransporterSpinner() {
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -231,16 +234,18 @@ public class addcmd extends AppCompatActivity {
             }
         });
     }
+
     private void addCommand() {
         String date = dateEdit.getText().toString().trim();
         String desc = descEdit.getText().toString().trim();
         String dest = destEdit.getText().toString().trim();
         String selectedTransporterName = transporterSpinner.getSelectedItem().toString();
 
-        if (TextUtils.isEmpty(date) || TextUtils.isEmpty(desc) || TextUtils.isEmpty(dest) || TextUtils.isEmpty(selectedTransporterName)) {
+        if (TextUtils.isEmpty(date) || TextUtils.isEmpty(desc) || TextUtils.isEmpty(dest) || TextUtils.isEmpty(selectedTransporterName) || selectedTransporterName.equals("Select Transporter")) {
             Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
             return;
         }
+
         Calendar currentDateTime = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yy", Locale.US);
         try {
@@ -258,6 +263,7 @@ public class addcmd extends AppCompatActivity {
             Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show();
             return;
         }
+
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
         usersRef.orderByChild("name").equalTo(selectedTransporterName).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -266,13 +272,17 @@ public class addcmd extends AppCompatActivity {
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                         String selectedTransporterUid = snapshot.getKey();
                         saveCommand(date, desc, dest, selectedTransporterUid);
-                    }}}
+                    }
+                }
+            }
+
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(addcmd.this, "Failed to retrieve transporter UID", Toast.LENGTH_SHORT).show();
             }
         });
     }
+
     private void saveCommand(String date, String desc, String dest, String selectedTransporterUid) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
@@ -284,13 +294,39 @@ public class addcmd extends AppCompatActivity {
             command.setDestination(dest);
             command.setIdtransporter(selectedTransporterUid);
             command.setEtat(defaultEtat);
-            databaseReference.child(commandId).setValue(command);
-            Toast.makeText(this, "Command added successfully", Toast.LENGTH_SHORT).show();
-            finish();
-            dateEdit.setText("");
-            descEdit.setText("");
-            destEdit.setText("");
+            databaseReference.child(commandId).setValue(command).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    notifyTransporter(selectedTransporterUid, desc);
+                    Toast.makeText(addcmd.this, "Command added successfully", Toast.LENGTH_SHORT).show();
+                    Intent resultIntent = new Intent();
+                    setResult(RESULT_OK, resultIntent);
+                    finish();
+                    dateEdit.setText("");
+                    descEdit.setText("");
+                    destEdit.setText("");
+                } else {
+                    Toast.makeText(addcmd.this, "Failed to add command", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
+    private void notifyTransporter(String transporterUid, String commandDescription) {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(transporterUid);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                User transporter = dataSnapshot.getValue(User.class);
+                if (transporter != null) {
+                    String transporterEmail = transporter.getEmail();
+                    NotificationUtils.sendNotification(addcmd.this, "New Command Assigned", "A new command has been assigned to you: " + commandDescription);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(addcmd.this, "Failed to send notification", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }

@@ -55,7 +55,8 @@
             android:layout_height="429dp"
             android:layout_marginBottom="-20dp"
             android:orientation="vertical"
-            android:padding="28dp">
+            android:padding="28dp"
+            android:background="@color/white">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -76,13 +77,15 @@
                 android:layout_height="wrap_content"
                 android:alpha="0.7"
                 android:text="Name"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/black"/>
 
             <EditText
                 android:id="@+id/id_nameProfile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:drawableEnd="@drawable/person1"
+                android:textColor="@color/black"
                 android:inputType="text" />
 
             <TextView
@@ -90,7 +93,8 @@
                 android:layout_height="wrap_content"
                 android:alpha="0.7"
                 android:text="Email Address"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/black"/>
 
             <EditText
                 android:id="@+id/id_emailsProfile"
@@ -98,6 +102,7 @@
                 android:layout_height="wrap_content"
                 android:drawableEnd="@drawable/done_icon"
                 android:inputType="textEmailAddress"
+                android:textColor="@color/black"
                 android:focusableInTouchMode="false"/>
 
             <TextView
@@ -105,13 +110,15 @@
                 android:layout_height="wrap_content"
                 android:alpha="0.7"
                 android:text="Phone number"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/black"/>
 
             <EditText
                 android:id="@+id/id_phoneProfile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:drawableEnd="@drawable/phone1"
+                android:textColor="@color/black"
                 android:inputType="number" />
 
             <LinearLayout

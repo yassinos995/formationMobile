@@ -40,6 +40,19 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
         notifyDataSetChanged();
     }
 
+    public void removeCommand(int position) {
+        if (position >= 0 && position < commandList.size()) {
+            commandList.remove(position);
+            commandIds.remove(position);
+            notifyItemRemoved(position);
+        }
+    }
+    public void updateCommand(int position, commande updatedCommand) {
+        commandList.set(position, updatedCommand);
+        notifyItemChanged(position);
+    }
+
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -57,6 +70,22 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
             holder.destTextView.setText("Destination: " + command.getDestination());
             holder.etatTextView.setText("Etat: " + command.getEtat());
             holder.transporterTextView.setText("idtransporter: " + command.getIdtransporter());
+
+            // Check if the transporter exists
+            DatabaseReference transporterRef = FirebaseDatabase.getInstance().getReference().child("users").child(command.getIdtransporter());
+            transporterRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (!snapshot.exists() && "Not Completed".equals(command.getEtat())) {
+                        updateEtat(holder.getAdapterPosition(), "Rejected");
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.e("TransporterCheck", "Failed to check transporter existence: " + error.getMessage());
+                }
+            });
 
             // Check if the current user's role is "Transporter"
             FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();

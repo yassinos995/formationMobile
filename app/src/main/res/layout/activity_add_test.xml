@@ -12,7 +12,8 @@
     tools:context=".addTest">
 <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/white">
     <LinearLayout
         android:id="@+id/toolbar_layout"
         android:layout_width="match_parent"
@@ -40,6 +41,7 @@
             android:text="Affect Test"
             android:textStyle="bold"
             android:textSize="26sp"
+            android:textColor="@color/black"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"/>
         <TextView
@@ -98,6 +100,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="emailText"
+                android:textColor="@color/black"
                 android:textSize="16dp" />
 
         </LinearLayout>
@@ -122,7 +125,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="16dp"
-                android:text="cinText" />
+                android:text="cinText"
+                android:textColor="@color/black"/>
 
         </LinearLayout>
 
@@ -146,7 +150,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="16dp"
-                android:text="phoneText" />
+                android:text="phoneText"
+                android:textColor="@color/black"/>
 
         </LinearLayout>
 
@@ -170,5 +175,5 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header"
-        app:menu="@menu/nav_menu" />
+        app:menu="@menu/nav_men" />
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -4,14 +4,23 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.core.app.NotificationCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,7 +46,11 @@ public class HomeTransporter extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private ImageButton menuButton2;
+    private ImageView redCircle;
+    private ImageView imageBell;
     private static final int REQUEST_CODE_ADD_TRANSPORTER = 1003;
+    private static final int REQUEST_CODE_POST_NOTIFICATIONS = 1033;
+    private static final int REQUEST_CODE_ADD_COMMAND = 1043;
     private User currentUser;
 
     @Override
@@ -52,6 +65,7 @@ public class HomeTransporter extends AppCompatActivity {
         userRef = firebaseDatabase.getReference("users").child(user.getUid());
 
         // Initialize UI Elements
+        imageBell = findViewById(R.id.imageView2);
         textView2 = findViewById(R.id.textView2);
         textView3 = findViewById(R.id.textView3);
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
@@ -62,18 +76,20 @@ public class HomeTransporter extends AppCompatActivity {
         navigationView = findViewById(R.id.nav_view);
 
         setupNavigationView();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE_POST_NOTIFICATIONS);
+            }
+        }
         menuButton2.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
         orderCardView.setOnClickListener(v -> {
             Intent intent = new Intent(HomeTransporter.this, OrdersT.class);
             startActivity(intent);
         });
-
         administrationCardView.setOnClickListener(v -> {
             Intent intent = new Intent(HomeTransporter.this, administration.class);
             startActivity(intent);
         });
-
-        // Setup Bottom Navigation View
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.homeT) {
@@ -103,6 +119,38 @@ public class HomeTransporter extends AppCompatActivity {
             fetchCurrentUserProfileFromFirebase(user.getUid());
         }
     }
+    public void showNewCommandNotification() {
+        String channelId = "NEW_COMMAND_NOTIFICATION_CHANNEL";
+        String channelName = "New Command Notification Channel";
+        String channelDescription = "Notification for new commands";
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channelId)
+                .setSmallIcon(R.drawable.bell)
+                .setContentTitle("New Command Added")
+                .setContentText("A new command has been successfully added.")
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+        Intent intent = new Intent(getApplicationContext(), home.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_MUTABLE);
+        builder.setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(channelId, channelName, importance);
+            notificationChannel.setDescription(channelDescription);
+            notificationChannel.setLightColor(Color.GREEN);
+            notificationChannel.enableVibration(true);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
+
+        notificationManager.notify(1, builder.build());
+        redCircle.setVisibility(View.VISIBLE);
+    }
     private void fetchCurrentUserProfileFromFirebase(String userId) {
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(userId);
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -122,7 +170,6 @@ public class HomeTransporter extends AppCompatActivity {
                     }
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(HomeTransporter.this, "Error fetching user profile", Toast.LENGTH_SHORT).show();
@@ -218,6 +265,10 @@ public class HomeTransporter extends AppCompatActivity {
         if (requestCode == REQUEST_CODE_ADD_TRANSPORTER) {
             if (resultCode == RESULT_OK) {
                 updateProfileInformation();
+            }
+        } else if (requestCode == REQUEST_CODE_ADD_COMMAND) {
+            if (resultCode == RESULT_OK) {
+                showNewCommandNotification();
             }
         }
     }

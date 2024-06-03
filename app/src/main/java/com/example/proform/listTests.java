@@ -59,6 +59,10 @@ public class listTests extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private boolean testD;
+    private DatabaseReference testsRef;
+    private DatabaseReference usersRef;
+    private ValueEventListener testsListener;
+    private ValueEventListener usersListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,10 +96,32 @@ public class listTests extends AppCompatActivity {
         itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
-    private void fetchTests() {
-        DatabaseReference testsRef = FirebaseDatabase.getInstance().getReference("tests");
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (testsRef != null && testsListener != null) {
+            testsRef.addValueEventListener(testsListener);
+        }
+        if (usersRef != null && usersListener != null) {
+            usersRef.addValueEventListener(usersListener);
+        }
+    }
 
-        testsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (testsRef != null && testsListener != null) {
+            testsRef.removeEventListener(testsListener);
+        }
+        if (usersRef != null && usersListener != null) {
+            usersRef.removeEventListener(usersListener);
+        }
+    }
+
+    private void fetchTests() {
+        testsRef = FirebaseDatabase.getInstance().getReference("tests");
+
+        testsListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Set<String> transporterIds = new HashSet<>();
@@ -113,13 +139,15 @@ public class listTests extends AppCompatActivity {
                 Log.e("FirebaseError", databaseError.getMessage());
                 Toast.makeText(listTests.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
-        });
+        };
+
+        testsRef.addValueEventListener(testsListener);
     }
 
     private void fetchUsers(Set<String> transporterIds, DataSnapshot testsSnapshot) {
-        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+        usersRef = FirebaseDatabase.getInstance().getReference("users");
 
-        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        usersListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 userTestList.clear();
@@ -148,7 +176,21 @@ public class listTests extends AppCompatActivity {
                 Log.e("FirebaseError", databaseError.getMessage());
                 Toast.makeText(listTests.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
-        });
+        };
+
+        usersRef.addValueEventListener(usersListener);
+    }
+
+    private void attachUsersListener() {
+        if (usersListener != null) {
+            usersRef.addValueEventListener(usersListener);
+        }
+    }
+
+    private void detachUsersListener() {
+        if (usersListener != null) {
+            usersRef.removeEventListener(usersListener);
+        }
     }
 
     private void setupNavigationView() {
@@ -165,7 +207,17 @@ public class listTests extends AppCompatActivity {
                 } else if (itemId == R.id.nav_list_commands) {
                     openListCommandsActivity();
                     return true;
-                } else if (itemId == R.id.nav_settings || itemId == R.id.nav_info || itemId == R.id.nav_share) {
+                } else if (itemId == R.id.nav_settings) {
+                    openSetting();
+                    return true;
+                } else if (itemId == R.id.nav_list_tests) {
+                    openListTestsActivity();
+                    return true;
+                } else if (itemId == R.id.nav_info) {
+                    // openLogo();
+                    return true;
+                } else if (itemId == R.id.nav_share) {
+                    // shareApp();
                     return true;
                 } else if (itemId == R.id.nav_logout) {
                     logout();
@@ -176,6 +228,16 @@ public class listTests extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void openListTestsActivity() {
+        Intent intent = new Intent(listTests.this, listTests.class);
+        startActivity(intent);
+    }
+
+    private void openSetting() {
+        Intent intent = new Intent(listTests.this, setting.class);
+        startActivity(intent);
     }
 
     private class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {

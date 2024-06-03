@@ -7,9 +7,12 @@
     app:cardElevation="8dp"
     android:layout_margin="12dp"
     >
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="80dp"
+        android:background="@color/white">
+
         <TextView
             android:id="@+id/nameLabelTextView"
             android:layout_width="wrap_content"
@@ -20,7 +23,8 @@
             android:textColor="@color/black"
             android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
+
         <TextView
             android:id="@+id/nameTextView"
             android:layout_width="wrap_content"
@@ -44,6 +48,7 @@
             android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/nameTextView" />
+
         <TextView
             android:id="@+id/posteTextView"
             android:layout_width="wrap_content"

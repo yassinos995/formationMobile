@@ -8,4 +8,7 @@
         /phoneNumber
         /poste
     </string>
+    <string name="preference_file_key">com.example.proform.NEW_COMMAND_FLAG</string>
+    <string name="new_command_added_flag">new_command_added_flag</string>
+
 </resources>

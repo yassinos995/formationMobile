@@ -97,7 +97,7 @@ public class addTest extends AppCompatActivity {
                 } else if (itemId == R.id.nav_settings) {
                     return true;
                 }else if (itemId == R.id.nav_list_tests) {
-                    //  openListTestsActivity();
+                      openListTestsActivity();
                     return true;
                 } else if (itemId == R.id.nav_info) {
                     return true;
@@ -113,6 +113,11 @@ public class addTest extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void openListTestsActivity() {
+        Intent intent = new Intent(addTest.this, listTests.class);
+        startActivity(intent);
     }
 
     private void openListCommandsActivity() {
@@ -296,6 +301,8 @@ public class addTest extends AppCompatActivity {
                                 testDetails.put("testReconnaissance", "In Progress");
                                 databaseReference.child(testId).setValue(testDetails);
                                 Toast.makeText(addTest.this, "Test added successfully", Toast.LENGTH_SHORT).show();
+                                Intent resultIntent = new Intent();
+                                setResult(RESULT_OK, resultIntent);
                                 finish();
                                 return;
                             }

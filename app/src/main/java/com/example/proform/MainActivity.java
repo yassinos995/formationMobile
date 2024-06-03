@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         rememberMe = findViewById(R.id.rememberMe);
         facebookLogo = findViewById(R.id.logof);
         progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("STANA HEEEY...");
+        progressDialog.setMessage("Please wait...");
         progressDialog.setCancelable(false);
 
         //googleLogo = findViewById(R.id.id_google);
