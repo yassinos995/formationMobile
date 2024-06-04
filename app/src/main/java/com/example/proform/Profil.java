@@ -22,47 +22,32 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class Profil extends AppCompatActivity {
+
     private EditText nameEditText, emailEditText, phoneEditText;
     private Button edit, cancel;
-    private FirebaseAuth firebaseAuth;
     private FirebaseDatabase firebaseDatabase;
-    private FirebaseUser user;
-    private String originalName;
-    private String originalPhoneNumber;
-
-    private final TextWatcher textWatcher = new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-        @Override
-        public void afterTextChanged(Editable s) {
-            boolean isNameChanged = !nameEditText.getText().toString().equals(originalName);
-            boolean isPhoneChanged = !phoneEditText.getText().toString().equals(originalPhoneNumber);
-            edit.setEnabled(isNameChanged || isPhoneChanged);
-        }
-    };
-
+    private FirebaseAuth firebaseAuth;
+    private User originalUser;
+    private String originalName, originalPhoneNumber;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profil);
 
+        // Initialize Firebase
+        firebaseDatabase = FirebaseDatabase.getInstance();
+        firebaseAuth = FirebaseAuth.getInstance();
         nameEditText = findViewById(R.id.id_nameProfile);
         emailEditText = findViewById(R.id.id_emailsProfile);
         phoneEditText = findViewById(R.id.id_phoneProfile);
         edit = findViewById(R.id.btn_edit_profile);
         cancel = findViewById(R.id.btn_CancelProfile);
 
-        firebaseAuth = FirebaseAuth.getInstance();
-        firebaseDatabase = FirebaseDatabase.getInstance();
-        user = firebaseAuth.getCurrentUser();
-
+        // Get user information from Intent
         String userName = getIntent().getStringExtra("userName");
-        DatabaseReference usersRef = firebaseDatabase.getReference().child("users");
 
+        // Get user data from Firebase
+        DatabaseReference usersRef = firebaseDatabase.getReference().child("users");
         usersRef.orderByChild("name").equalTo(userName).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -86,35 +71,73 @@ public class Profil extends AppCompatActivity {
             }
         });
 
+        // Set up TextWatcher for EditText fields
+        TextWatcher textWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                edit.setEnabled(hasUserChanged());
+            }
+        };
+
         nameEditText.addTextChangedListener(textWatcher);
         phoneEditText.addTextChangedListener(textWatcher);
 
+        // Set up click listener for Cancel button
         cancel.setOnClickListener(v -> navigateBasedOnRole());
     }
 
+    private boolean hasUserChanged() {
+        // Check if originalUser is null or if any field has changed
+        if (originalUser == null) {
+            return false;
+        }
+
+        String currentName = nameEditText.getText().toString().trim();
+        String currentEmail = emailEditText.getText().toString().trim();
+        String currentPhoneNumber = phoneEditText.getText().toString().trim();
+
+        return !currentName.equals(originalUser.getName()) ||
+                !currentEmail.equals(originalUser.getEmail()) ||
+                !currentPhoneNumber.equals(originalUser.getPhoneNumber());
+    }
+
     private void populateUserProfile(User user, DatabaseReference userRef) {
+        // Populate the EditText fields with user data
         nameEditText.setText(user.getName());
         emailEditText.setText(user.getEmail());
         phoneEditText.setText(user.getPhoneNumber());
 
+        // Store original user data for comparison
+        originalUser = user;
         originalName = user.getName();
         originalPhoneNumber = user.getPhoneNumber();
 
+        // Set up click listener for the Edit button
         edit.setOnClickListener(v -> updateProfile(userRef));
     }
 
     private void updateProfile(DatabaseReference userRef) {
+        // Get the updated values from the EditText fields
         String newName = nameEditText.getText().toString().trim();
         String newPhoneNumber = phoneEditText.getText().toString().trim();
 
+        // Validate input fields
         if (newName.isEmpty() || newPhoneNumber.isEmpty()) {
             showToast("Name and phone number cannot be empty.");
             return;
         }
 
+        // Update the user data in Firebase
         userRef.child("name").setValue(newName);
         userRef.child("phoneNumber").setValue(newPhoneNumber);
 
+        // Navigate to the appropriate home screen based on user role
         navigateBasedOnRole();
     }
 
@@ -152,7 +175,7 @@ public class Profil extends AppCompatActivity {
             case "Admin":
                 intent = new Intent(this, home.class);
                 break;
-            case "Chef personnelle":
+            case "Chef":
                 intent = new Intent(this, HomeChef.class);
                 break;
             default:
@@ -170,33 +193,26 @@ public class Profil extends AppCompatActivity {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String currentUserUid = currentUser.getUid();
-            DatabaseReference currentUserRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserUid);
+            DatabaseReference currentUserRef = firebaseDatabase.getReference().child("users").child(currentUserUid);
+
             currentUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    if (dataSnapshot.exists()) {
-                        User currentUser = dataSnapshot.getValue(User.class);
-                        if (currentUser != null) {
-                            String currentUserRole = currentUser.getPoste();
-                            if ("Admin".equals(currentUserRole)) {
-                                Intent intent = new Intent(Profil.this, home.class);
-
-                                startActivity(intent);
-                            }else {
-                                Intent intent = new Intent(Profil.this, HomeChef.class);
-                                startActivity(intent);
-                            }
-                        }
+                    User user = dataSnapshot.getValue(User.class);
+                    if (user != null) {
+                        navigateToHomeScreen(user.getPoste());
+                    } else {
+                        showToast("Error retrieving user role.");
                     }
                 }
+
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-                    Toast.makeText(Profil.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                    showToast("Error: " + databaseError.getMessage());
                 }
             });
         } else {
-            // User is not authenticated
-            Toast.makeText(Profil.this, "User not authenticated", Toast.LENGTH_SHORT).show();
+            showToast("User not authenticated.");
         }
     }
 }

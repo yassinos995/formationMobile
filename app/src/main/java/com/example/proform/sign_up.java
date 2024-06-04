@@ -7,7 +7,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -33,6 +36,8 @@ import java.util.regex.Pattern;
 
 public class sign_up extends AppCompatActivity {
     MaterialButton btn_s;
+    boolean isPasswordVisible = false;
+
     private EditText nameEditText, emailEditText, passwordEditText, repeatPasswordEditText, phoneNumberEditText, posteEditText, cinEditText;
     private FirebaseAuth firebaseAuth;
     private DatabaseReference DatabaseReference;
@@ -91,14 +96,11 @@ public class sign_up extends AppCompatActivity {
                         User userData = snapshot.getValue(User.class);
                         if (userData != null) {
                             String userRole = userData.getPoste();
-                            if (userRole != null && userRole.equals("Chef personnelle")) {
-                                // Hide the "poste" selection section if the user is "Chef personnelle"
+                            if (userRole != null && userRole.equals("Chef")) {
                                 TextView poste1 = findViewById(R.id.poste1);
                                 RadioGroup posteRadioGroup = findViewById(R.id.posteRadioGroup);
                                 poste1.setVisibility(View.GONE);
                                 posteRadioGroup.setVisibility(View.GONE);
-
-                                // Set the default selection of the "poste" field to "Transporter"
                                 RadioButton transporterRadioButton = findViewById(R.id.transporterRadioButton);
                                 transporterRadioButton.setChecked(true);
                             }
@@ -112,6 +114,54 @@ public class sign_up extends AppCompatActivity {
                 }
             });
         }
+        passwordEditText.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                final int DRAWABLE_RIGHT = 2;
+
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    if (event.getRawX() >= (passwordEditText.getRight() - passwordEditText.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
+                        // Toggle password visibility
+                        isPasswordVisible = !isPasswordVisible;
+                        if (isPasswordVisible) {
+                            // Show password
+                            passwordEditText.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                            passwordEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.password_icon, 0);
+                        } else {
+                            // Hide password
+                            passwordEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                            passwordEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.password_icon, 0);
+                        }
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+        repeatPasswordEditText.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                final int DRAWABLE_RIGHT = 2;
+
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    if (event.getRawX() >= (repeatPasswordEditText.getRight() - repeatPasswordEditText.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
+                        // Toggle password visibility
+                        isPasswordVisible = !isPasswordVisible;
+                        if (isPasswordVisible) {
+                            // Show password
+                            repeatPasswordEditText.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                            repeatPasswordEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.password_icon, 0);
+                        } else {
+                            // Hide password
+                            repeatPasswordEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                            repeatPasswordEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.password_icon, 0);
+                        }
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
     }
 
 
@@ -127,8 +177,8 @@ public class sign_up extends AppCompatActivity {
         RadioButton selectedRadioButton = findViewById(selectedRadioButtonId);
         if (selectedRadioButton != null) {
             String poste = selectedRadioButton.getText().toString().trim();
-            final String[] finalPoste = new String[1]; // Create final array to store poste value
-            finalPoste[0] = poste; // Assign value to the final array
+            final String[] finalPoste = new String[1];
+            finalPoste[0] = poste;
             FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
             if (currentUser != null) {
                 DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUser.getUid());
@@ -137,7 +187,7 @@ public class sign_up extends AppCompatActivity {
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()) {
                             User userData = snapshot.getValue(User.class);
-                            if (userData != null && userData.getPoste().equals("Chef personnelle")) {
+                            if (userData != null && userData.getPoste().equals("Chef")) {
                                 finalPoste[0] = "Transporter"; // Update value in the final array
                             }
                         }
@@ -166,7 +216,6 @@ public class sign_up extends AppCompatActivity {
             progressDialog.dismiss();
         }
     }
-
     private void sendEmailVerification(String name, String Cin, String email, String phoneNumber, String poste) {
         FirebaseUser loggedUser = firebaseAuth.getCurrentUser();
         if (loggedUser != null) {
@@ -174,20 +223,17 @@ public class sign_up extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     progressDialog.dismiss();
                     sendUserData(name, Cin, email, phoneNumber, poste, passwordEditText.getText().toString().trim());
-
                     Toast.makeText(this, "Registration done! Please check your email address.", Toast.LENGTH_SHORT).show();
                     signInStoredUser();
                     finish();
                 } else {
                     progressDialog.dismiss();
                     Log.e("EmailVerification", "Email verification failed: " + task.getException().getMessage());
-
                     Toast.makeText(this, "Email verification failed. Please try again.", Toast.LENGTH_SHORT).show();
                 }
             });
         }
     }
-
     private void signInStoredUser() {
         String storedUid = getUidFromSharedPreferences();
         if (storedUid != null) {
@@ -217,14 +263,12 @@ public class sign_up extends AppCompatActivity {
                         Toast.makeText(sign_up.this, "User data does not exist", Toast.LENGTH_SHORT).show();
                     }
                 }
-
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
                     Toast.makeText(sign_up.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
-            // UID not available in SharedPreferences
             Toast.makeText(sign_up.this, "Stored UID not found", Toast.LENGTH_SHORT).show();
         }
     }

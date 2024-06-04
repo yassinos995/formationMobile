@@ -157,11 +157,11 @@ public class HomeChef extends AppCompatActivity {
                 if (snapshot.exists()) {
                     String userName = snapshot.child("name").getValue(String.class);
                     String poste = snapshot.child("poste").getValue(String.class);
-                    if ("Chef personnelle".equals(poste)) {
+                    if ("Chef".equals(poste)) {
                         textView2.setText(userName);
                         textView3.setText(poste);
                         MenuItem listEmployersMenuItem = navigationView.getMenu().findItem(R.id.nav_list_employers);
-                        if ("Chef personnelle".equals(poste)) {
+                        if ("Chef".equals(poste)) {
                             listEmployersMenuItem.setTitle("Liste Transporter");
                         } else {
                             listEmployersMenuItem.setTitle("Liste Employers");

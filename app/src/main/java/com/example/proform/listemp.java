@@ -84,14 +84,14 @@ public class listemp extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             String currentUserUid = currentUser.getUid();
-            saveUidToSharedPreferences(currentUserUid); 
+            saveUidToSharedPreferences(currentUserUid);
         }
         menubuttonL.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 drawerLayout.openDrawer(GravityCompat.START);
             }
-             });
+        });
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
         if (currentUser != null) {
             String currentUserUid = currentUser.getUid();
@@ -118,7 +118,7 @@ public class listemp extends AppCompatActivity {
                                             if (user.getPoste().equals("Admin")) {
                                                 continue;
                                             }
-                                            if (currentUserRole.equals("Chef personnelle")) {
+                                            if (currentUserRole.equals("Chef")) {
 
                                                 if (!user.getPoste().equals("Transporter")) {
                                                     continue;
@@ -167,10 +167,11 @@ public class listemp extends AppCompatActivity {
                 } else if (itemId == R.id.nav_list_commands) {
                     openListCommandsActivity();
                     return true;
-                } else if (itemId == R.id.nav_settings || itemId == R.id.nav_info || itemId == R.id.nav_share) {
-                    return true;
-                }else if (itemId == R.id.nav_list_tests) {
+                } else if (itemId == R.id.nav_list_tests) {
                     openListTestsActivity();
+                    return true;
+                }else if (itemId == R.id.nav_settings) {
+                    openSettingActivity();
                     return true;
                 } else if (itemId == R.id.nav_logout) {
                     logout();
@@ -181,6 +182,11 @@ public class listemp extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void openSettingActivity() {
+        Intent intent = new Intent(listemp.this, setting.class);
+        startActivity(intent);
     }
 
     private void openListTestsActivity() {
@@ -396,7 +402,7 @@ public class listemp extends AppCompatActivity {
             Toast.makeText(listemp.this,"User not authenticated", Toast.LENGTH_SHORT).show();
             adapter.notifyItemChanged(position);
         }
-        
+
     }
     private void openUpdate(User user) {
         Intent intent = new Intent(listemp.this, updatep.class);
@@ -422,6 +428,7 @@ public class listemp extends AppCompatActivity {
                                             if (task.isSuccessful()) {
                                             } else {
                                                 Toast.makeText(listemp.this, "Failed to sign in user: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(listemp.this, "the email is : "  + email+"and password is"+ password, Toast.LENGTH_SHORT).show();
                                             }
                                         }
                                     });

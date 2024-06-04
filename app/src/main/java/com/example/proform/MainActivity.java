@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         //googleLogo = findViewById(R.id.id_google);
 
 
-      /*  SharedPreferences preferences = getSharedPreferences("checkBox", MODE_PRIVATE);
+       SharedPreferences preferences = getSharedPreferences("checkBox", MODE_PRIVATE);
         boolean resCheckBox = preferences.getBoolean("Remember", false);
 
         if (resCheckBox) {
@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
                     editor.apply();
                 }
             }
-        });*/
+        });
 
         btn_login.setOnClickListener(v -> {
             String emails = emailEditText.getText().toString().trim();
@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
                                     Log.d("UserRole", "Navigating to Transporter Dashboard");
                                     goToTransporterDashboard();
                                     break;
-                                case "Chef personnelle":
+                                case "Chef":
                                     Log.d("UserRole", "Navigating to Chef Dashboard");
                                     goToChefDashboard();
                                     break;
@@ -267,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
                         if (role != null) {
                             if (role.equals("Transporter")) {
                                 goToTransporterDashboard();
-                            } else if (role.equals("Chef personnelle")) {
+                            } else if (role.equals("Chef")) {
                                 goToChefDashboard();
                             }
                         } else {

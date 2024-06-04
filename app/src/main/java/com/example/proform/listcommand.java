@@ -72,9 +72,7 @@ public class listcommand extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         databaseReference = FirebaseDatabase.getInstance().getReference("commands");
-
         checkUserRoleAndSetupNavigation();
-        retrieveCommands();
         SharedPreferences sharedPref = getSharedPreferences("UserSession", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString("userID", FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -82,11 +80,6 @@ public class listcommand extends AppCompatActivity {
         menuButtonLC.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        retrieveCommands();
-    }
 
     private void checkUserRoleAndSetupNavigation() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -100,7 +93,7 @@ public class listcommand extends AppCompatActivity {
                         if (userData != null) {
                             isTransporter = "Transporter".equals(userData.getPoste());
                             isAdmin = "Admin".equals(userData.getPoste());
-                            isChef = "Chef personnelle".equals(userData.getPoste());
+                            isChef = "Chef".equals(userData.getPoste());
 
                             MenuItem listEmployersMenuItem = navigationView.getMenu().findItem(R.id.nav_list_employers);
                             if (isChef) {
@@ -199,7 +192,7 @@ public class listcommand extends AppCompatActivity {
                             Intent intent;
                             if ("Admin".equals(currentUserRole)) {
                                 intent = new Intent(listcommand.this, home.class);
-                            } else if ("Chef personnelle".equals(currentUserRole)) {
+                            } else if ("Chef".equals(currentUserRole)) {
                                 intent = new Intent(listcommand.this, HomeChef.class);
                             } else {
                                 intent = new Intent(listcommand.this, HomeTransporter.class);
@@ -356,7 +349,7 @@ public class listcommand extends AppCompatActivity {
             DatabaseReference commandRef = FirebaseDatabase.getInstance().getReference("commands").child(commandId);
             commandRef.removeValue((error, ref) -> {
                 if (error == null) {
-                    Toast.makeText(listcommand.this, "it's ok", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(listcommand.this, "Command deleted", Toast.LENGTH_SHORT).show();
                 } else {
                     Log.e("DeleteCommand", "Failed to delete command: " + error.getMessage());
                     commandAdapter.notifyItemChanged(position);
