@@ -157,14 +157,12 @@ public class addcmd extends AppCompatActivity {
                         }
                     }
                 }
-
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
                     Toast.makeText(addcmd.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
-            // User is not authenticated
             Toast.makeText(addcmd.this, "User not authenticated", Toast.LENGTH_SHORT).show();
         }
     }

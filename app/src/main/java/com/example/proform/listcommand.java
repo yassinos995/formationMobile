@@ -148,8 +148,6 @@ public class listcommand extends AppCompatActivity {
                 return true;
             }
         });
-
-        // Hide specific menu items for transporters
         if (isTransporter) {
             navigationView.getMenu().findItem(R.id.nav_list_employers).setVisible(false);
             navigationView.getMenu().findItem(R.id.nav_list_tests).setVisible(false);

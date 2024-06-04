@@ -7,30 +7,37 @@
         <item
             android:id="@+id/nav_home"
             android:icon="@drawable/baseline_home_24"
+            android:textColor="@color/black"
             android:title="Home"/>
         <item
             android:id="@+id/nav_list_employers"
             android:icon="@drawable/clipboard"
+            android:textColor="@color/black"
             android:title="Liste Employers"/>
         <item
             android:id="@+id/nav_list_commands"
             android:icon="@drawable/listor"
+            android:textColor="@color/black"
             android:title="Liste commands"/>
         <item
             android:id="@+id/nav_list_tests"
             android:icon="@drawable/icontests"
+            android:textColor="@color/black"
             android:title="Tests"/>
         <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/setting"
+            android:textColor="@color/black"
             android:title="Settings"/>
         <item
             android:id="@+id/nav_share"
             android:icon="@drawable/share"
+            android:textColor="@color/black"
             android:title="Share"/>
         <item
             android:id="@+id/nav_info"
             android:icon="@drawable/info"
+            android:textColor="@color/black"
             android:title="info"/>
     </group>
     <item
@@ -39,6 +46,7 @@
             <item
                 android:id="@+id/nav_logout"
                 android:icon="@drawable/logout"
+                android:textColor="@color/black"
                 android:title="Logout"/>
         </menu>
     </item>

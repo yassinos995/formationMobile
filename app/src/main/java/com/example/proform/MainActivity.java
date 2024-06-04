@@ -76,23 +76,11 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Please sign in !", Toast.LENGTH_SHORT).show();
         }
 
-       rememberMe.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (buttonView.isChecked()) {
-                    SharedPreferences preferences = getSharedPreferences("checkBox", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putBoolean("remember", true);
-                    editor.apply();
-                } else if (!buttonView.isChecked()) {
-                    SharedPreferences preferences = getSharedPreferences("checkBox", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putBoolean("remember", false);
-                    editor.apply();
-                }
-            }
+        rememberMe.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("Remember", isChecked);
+            editor.apply();
         });
-
         btn_login.setOnClickListener(v -> {
             String emails = emailEditText.getText().toString().trim();
             String passwords = passwordEditText.getText().toString().trim();
