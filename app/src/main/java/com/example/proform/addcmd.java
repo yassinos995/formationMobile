@@ -117,7 +117,7 @@ public class addcmd extends AppCompatActivity {
                 } else if (itemId == R.id.nav_settings) {
                     return true;
                 } else if (itemId == R.id.nav_list_tests) {
-                    // openListTestsActivity();
+                     openListTestsActivity();
                     return true;
                 } else if (itemId == R.id.nav_info) {
                     return true;
@@ -133,6 +133,11 @@ public class addcmd extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void openListTestsActivity() {
+        Intent intent = new Intent(addcmd.this,listTests.class);
+        startActivity(intent);
     }
 
     private void gohome() {

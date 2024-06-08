@@ -1,5 +1,7 @@
 package com.example.proform;
 
+import androidx.activity.result.ActivityResultCaller;
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -8,10 +10,12 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -26,6 +30,8 @@ import android.widget.Toast;
 
 import com.example.proform.model.User;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -34,9 +40,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.journeyapps.barcodescanner.CaptureActivity;
+import com.journeyapps.barcodescanner.ScanContract;
+import com.journeyapps.barcodescanner.ScanOptions;
 
 public class HomeTransporter extends AppCompatActivity {
-
+    private static final int REQUEST_CAMERA_PERMISSION = 200;
     private BottomNavigationView bottomNavigationView;
     private CardView orderCardView, administrationCardView;
     private TextView textView2, textView3;
@@ -48,6 +57,7 @@ public class HomeTransporter extends AppCompatActivity {
     private ImageButton menuButton2;
     private ImageView redCircle;
     private ImageView imageBell;
+    private FloatingActionButton btn_scan;
     private static final int REQUEST_CODE_ADD_TRANSPORTER = 1003;
     private static final int REQUEST_CODE_POST_NOTIFICATIONS = 1033;
     private static final int REQUEST_CODE_ADD_COMMAND = 1043;
@@ -58,13 +68,11 @@ public class HomeTransporter extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_transporter);
 
-        // Initialize Firebase Auth and Database
         firebaseAuth = FirebaseAuth.getInstance();
         user = firebaseAuth.getCurrentUser();
         FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
         userRef = firebaseDatabase.getReference("users").child(user.getUid());
 
-        // Initialize UI Elements
         imageBell = findViewById(R.id.imageView2);
         textView2 = findViewById(R.id.textView2);
         textView3 = findViewById(R.id.textView3);
@@ -73,6 +81,10 @@ public class HomeTransporter extends AppCompatActivity {
         administrationCardView = findViewById(R.id.administrationCardView);
         menuButton2 = findViewById(R.id.id_menu);
         drawerLayout = findViewById(R.id.drawer_layout);
+        btn_scan = findViewById(R.id.floatingActionButton);
+        btn_scan.setOnClickListener(v -> {
+            scanCode();
+        });
         navigationView = findViewById(R.id.nav_view);
 
         setupNavigationView();
@@ -108,6 +120,44 @@ public class HomeTransporter extends AppCompatActivity {
         });
         currentUser = (User) getIntent().getSerializableExtra("currentUser");
     }
+
+    private void scanCode() {
+        ScanOptions options =new ScanOptions();
+        options.setPrompt("up to flash on");
+        options.setBeepEnabled(true);
+        options.setOrientationLocked(true);
+        options.setCaptureActivity(CaptureAct.class);
+        barLaucher.launch(options);
+
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted
+            } else {
+                // Permission denied
+                new AlertDialog.Builder(this)
+                        .setMessage("Camera permission is required to scan QR codes.")
+                        .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                        .show();
+            }
+        }
+    }
+    ActivityResultLauncher<ScanOptions> barLaucher = registerForActivityResult(new ScanContract(), result -> {
+        if (result.getContents() != null) {
+            Log.d("ScanResult", "Result: " + result.getContents());
+            AlertDialog.Builder builder = new AlertDialog.Builder(HomeTransporter.this);
+            builder.setTitle("Result");
+            builder.setMessage(result.getContents());
+            builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss()).show();
+        } else {
+            Log.d("ScanResult", "No result found");
+        }
+    });
+
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -189,6 +239,7 @@ public class HomeTransporter extends AppCompatActivity {
                 openlistcommand();
                 return true;
             } else if (itemId == R.id.nav_settings) {
+                goToSetting();
                 return true;
             } else if (itemId == R.id.nav_info) {
                 return true;
@@ -227,6 +278,11 @@ public class HomeTransporter extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    private void goToSetting() {
+        Intent intent = new Intent(HomeTransporter.this, setting.class);
+        startActivity(intent);
     }
 
     private void openlistcommand() {

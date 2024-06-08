@@ -192,7 +192,6 @@ public class home extends AppCompatActivity {
                             textView2.setText(userName);
                             textView3.setText(poste);
                         } else {
-                            // Handle non-admin users if needed
                         }
                     }
                 }

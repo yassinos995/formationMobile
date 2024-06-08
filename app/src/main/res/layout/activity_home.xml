@@ -20,13 +20,11 @@
         android:background="?attr/colorPrimary"
         />
   </com.google.android.material.appbar.AppBarLayout>
-
   <androidx.constraintlayout.widget.ConstraintLayout
       android:layout_width="match_parent"
       android:layout_height="match_parent"
       android:background="@android:color/transparent"
       tools:context=".home">
-
     <ScrollView
         android:id="@+id/scrollView2"
         android:layout_width="match_parent"
@@ -173,15 +171,12 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/trackhistory">
-
           <LinearLayout
               android:layout_width="match_parent"
-              android:layout_height="57dp"
+              android:layout_height="56dp"
               android:background="@color/white"
               android:gravity="center_vertical"
               android:orientation="horizontal">
-
-
             <ImageView
                 android:id="@+id/addtranImg"
                 android:layout_width="56dp"
@@ -190,8 +185,6 @@
                 android:paddingStart="8dp"
                 android:scaleType="centerCrop"
                 android:src="@drawable/md" />
-
-
             <TextView
                 android:id="@+id/addTrantxt"
                 android:layout_width="0dp"
@@ -401,6 +394,5 @@
       android:layout_gravity="start"
       android:fitsSystemWindows="true"
       app:headerLayout="@layout/nav_header"
-      android:background="@color/white"
       app:menu="@menu/nav_menu" />
 </androidx.drawerlayout.widget.DrawerLayout>

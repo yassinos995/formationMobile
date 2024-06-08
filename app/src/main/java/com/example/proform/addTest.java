@@ -95,9 +95,10 @@ public class addTest extends AppCompatActivity {
                     openListCommandsActivity();
                     return true;
                 } else if (itemId == R.id.nav_settings) {
+                    openSetting();
                     return true;
                 }else if (itemId == R.id.nav_list_tests) {
-                      openListTestsActivity();
+                    openListTestsActivity();
                     return true;
                 } else if (itemId == R.id.nav_info) {
                     return true;
@@ -113,6 +114,11 @@ public class addTest extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void openSetting() {
+        Intent intent = new Intent(addTest.this, setting.class);
+        startActivity(intent);
     }
 
     private void openListTestsActivity() {
@@ -152,7 +158,6 @@ public class addTest extends AppCompatActivity {
                         }
                     }
                 }
-
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
                     Toast.makeText(addTest.this, "Error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
@@ -263,6 +268,8 @@ public class addTest extends AppCompatActivity {
                     cinText.setVisibility(View.VISIBLE);
                     phoneTextView.setVisibility(View.VISIBLE);
                     phoneText.setVisibility(View.VISIBLE);
+
+                    // You can add additional functionality here if needed
                 }
             }
 
@@ -304,6 +311,7 @@ public class addTest extends AppCompatActivity {
                                 Intent resultIntent = new Intent();
                                 setResult(RESULT_OK, resultIntent);
                                 finish();
+                                notifyTransporter(uid);
                                 return;
                             }
                         }
@@ -320,4 +328,24 @@ public class addTest extends AppCompatActivity {
             Toast.makeText(this, "Please select a transporter to add the test", Toast.LENGTH_SHORT).show();
         }
     }
+
+    private void notifyTransporter(String transporterUid) {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(transporterUid);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                User transporter = dataSnapshot.getValue(User.class);
+                if (transporter != null) {
+                    String transporterEmail = transporter.getEmail();
+                    NotificationUtils.sendNotification(addTest.this, "New Test Assigned", "A new test has been assigned to you.");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(addTest.this, "Failed to send notification", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }
+

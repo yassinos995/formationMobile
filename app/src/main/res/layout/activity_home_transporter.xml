@@ -57,6 +57,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:src="@drawable/menu_ic"
+                        android:backgroundTint="@color/gray"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"/>
                     <TextView
@@ -97,7 +98,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Ready to GOO !"
-                        android:paddingStart="53dp"
+                        android:paddingStart="43dp"
                         android:textColor="@color/white"
                         android:textSize="30sp"
                         android:textStyle="bold"
@@ -186,10 +187,10 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="57dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/white"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:background="@color/white">
+                    android:orientation="horizontal">
 
                     <ImageView
                         android:id="@+id/boxImage"
@@ -208,9 +209,9 @@
                         android:layout_marginEnd="16dp"
                         android:layout_weight="1"
                         android:text="Orders"
-                        android:textStyle="bold"
                         android:textColor="@android:color/black"
-                        android:textSize="16sp" />
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
                     <ImageView
                         android:id="@+id/arrowIcon"
@@ -323,6 +324,5 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header"
-        android:background="@color/white"
-        app:menu="@menu/nav_menu" />
+        app:menu="@menu/nav_men" />
 </androidx.drawerlayout.widget.DrawerLayout>
