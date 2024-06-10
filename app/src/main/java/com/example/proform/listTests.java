@@ -162,6 +162,13 @@ public class listTests extends AppCompatActivity {
                                     String testAlcool = testSnapshot.child("testAlcool").getValue(String.class);
                                     String testReconnaissance = testSnapshot.child("testReconnaissance").getValue(String.class);
                                     UserTest userTest = new UserTest(user.getName(), user.getEmail(), idTransporter, testAlcool, testReconnaissance);
+                                    if (testReconnaissance != null && !testReconnaissance.equals("Unknown") && !testReconnaissance.equals("In Progress")) {
+                                        if (user.getName().equals(testReconnaissance.trim())) {
+                                            userTest.setTestReconnaissance("Right");
+                                        } else {
+                                            userTest.setTestReconnaissance("Unknown");
+                                        }
+                                    }
                                     userTestList.add(userTest);
                                 }
                             }
@@ -180,12 +187,12 @@ public class listTests extends AppCompatActivity {
         usersRef.addValueEventListener(usersListener);
     }
 
+
     private void attachUsersListener() {
         if (usersListener != null) {
             usersRef.addValueEventListener(usersListener);
         }
     }
-
     private void detachUsersListener() {
         if (usersListener != null) {
             usersRef.removeEventListener(usersListener);

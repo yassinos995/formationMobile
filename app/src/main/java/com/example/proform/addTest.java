@@ -2,6 +2,7 @@ package com.example.proform;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -36,6 +37,7 @@ import java.util.Map;
 public class addTest extends AppCompatActivity {
     private Spinner transporterSpinner;
     private Button submitButton;
+    private CardView cardDetails;
     private DatabaseReference databaseReference;
     private ArrayAdapter<String> spinnerAdapter;
     private ImageButton menuButton;
@@ -51,6 +53,7 @@ public class addTest extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("tests");
         transporterSpinner = findViewById(R.id.transporterSpinner);
+        cardDetails=findViewById(R.id.cardDetails);
         submitButton = findViewById(R.id.buttonSubmit);
         emailTextView = findViewById(R.id.EmailTextView);
         cinTextView = findViewById(R.id.CinlTextView);
@@ -269,7 +272,7 @@ public class addTest extends AppCompatActivity {
                     phoneTextView.setVisibility(View.VISIBLE);
                     phoneText.setVisibility(View.VISIBLE);
 
-                    // You can add additional functionality here if needed
+                    findViewById(R.id.cardDetails).setVisibility(View.VISIBLE);
                 }
             }
 
@@ -348,4 +351,3 @@ public class addTest extends AppCompatActivity {
         });
     }
 }
-

@@ -200,11 +200,11 @@ public class sign_up extends AppCompatActivity {
                 });
             }
 
-            if (validate(name, Cin, email, phoneNumber, password, repeatPassword, finalPoste[0])) { // Use the value from the final array
+            if (validate(name, Cin, email, phoneNumber, password, repeatPassword, finalPoste[0])) {
                 progressDialog.show();
                 firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        sendEmailVerification(name, Cin, email, phoneNumber, finalPoste[0]); // Use the value from the final array
+                        sendEmailVerification(name, Cin, email, phoneNumber, finalPoste[0]);
                     } else {
                         progressDialog.dismiss();
                         Log.e("SignUp", "Sign-up failed: " + task.getException());
@@ -287,8 +287,24 @@ public class sign_up extends AppCompatActivity {
     }
 
     private boolean validate(String name, String Cin, String email, String phoneNumber, String password, String repeatPassword, String poste) {
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference().child("users");
+        usersRef.orderByChild("cin").equalTo(Cin).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    cinEditText.setError("This Cin is already used");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Handle onCancelled event, if needed
+                Log.e("ValidateCin", "Database error: " + databaseError.getMessage());
+            }
+        });
+
         if (name.isEmpty() || name.length() < 4) {
-            nameEditText.setError(" name is invalid");
+            nameEditText.setError("Name is invalid");
             return false;
         } else if (!isValidEmail(email)) {
             emailEditText.setError("Email is invalid");
@@ -308,10 +324,14 @@ public class sign_up extends AppCompatActivity {
         } else if (Cin.isEmpty()) {
             cinEditText.setError("Cin is required");
             return false;
+        } else if (Cin.length() != 8) {
+            cinEditText.setError("Cin must be 8 characters");
+            return false;
         } else {
             return true;
         }
     }
+
     private void saveUidToSharedPreferences(String uid) {
         SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit();
         editor.putString(KEY_UID, uid);

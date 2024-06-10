@@ -38,4 +38,24 @@ public class UserTest {
     public String getTestReconnaissance() {
         return testReconnaissance;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setIdTransporter(String idTransporter) {
+        this.idTransporter = idTransporter;
+    }
+
+    public void setTestAlcool(String testAlcool) {
+        this.testAlcool = testAlcool;
+    }
+
+    public void setTestReconnaissance(String testReconnaissance) {
+        this.testReconnaissance = testReconnaissance;
+    }
 }

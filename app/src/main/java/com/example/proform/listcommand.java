@@ -227,8 +227,6 @@ public class listcommand extends AppCompatActivity {
                         }
                     }
                     commandAdapter.setCommands(commandList, commandIds);
-
-                    // Attach ItemTouchHelper for admin
                     ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback());
                     itemTouchHelper.attachToRecyclerView(recyclerView);
                 }
@@ -287,10 +285,15 @@ public class listcommand extends AppCompatActivity {
         @Override
         public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
             int position = viewHolder.getAdapterPosition();
+            commande command = commandList.get(position);
+
             if (direction == ItemTouchHelper.LEFT) {
                 showPasswordDialog(position);
-            } else if (direction == ItemTouchHelper.RIGHT) {
+            } else if (direction == ItemTouchHelper.RIGHT && !"Rejected".equals(command.getEtat())) {
                 showUpdateDialog(position);
+            } else {
+                // If the command is rejected, notify the adapter to reset the item view
+                commandAdapter.notifyItemChanged(position);
             }
         }
 
@@ -342,6 +345,7 @@ public class listcommand extends AppCompatActivity {
                 commandAdapter.notifyItemChanged(position);
             }
         }
+
         private void deleteCommand(final int position) {
             String commandId = commandList.get(position).getUid();
             DatabaseReference commandRef = FirebaseDatabase.getInstance().getReference("commands").child(commandId);
@@ -354,21 +358,25 @@ public class listcommand extends AppCompatActivity {
                 }
             });
         }
+
         @Override
         public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
             View itemView = viewHolder.itemView;
             int itemHeight = itemView.getHeight();
 
             if (dX > 0) {
-                backgroundUpdate.setBounds(itemView.getLeft(), itemView.getTop(), itemView.getLeft() + (int) dX, itemView.getBottom());
-                backgroundUpdate.draw(c);
-                int updateIconTop = itemView.getTop() + (itemHeight - updateIcon.getIntrinsicHeight()) / 2;
-                int updateIconMargin = (itemHeight - updateIcon.getIntrinsicHeight()) / 2;
-                int updateIconLeft = itemView.getLeft() + updateIconMargin;
-                int updateIconRight = itemView.getLeft() + updateIconMargin + updateIcon.getIntrinsicWidth();
-                int updateIconBottom = updateIconTop + updateIcon.getIntrinsicHeight();
-                updateIcon.setBounds(updateIconLeft, updateIconTop, updateIconRight, updateIconBottom);
-                updateIcon.draw(c);
+                commande command = commandList.get(viewHolder.getAdapterPosition());
+                if (!"Rejected".equals(command.getEtat())) {
+                    backgroundUpdate.setBounds(itemView.getLeft(), itemView.getTop(), itemView.getLeft() + (int) dX, itemView.getBottom());
+                    backgroundUpdate.draw(c);
+                    int updateIconTop = itemView.getTop() + (itemHeight - updateIcon.getIntrinsicHeight()) / 2;
+                    int updateIconMargin = (itemHeight - updateIcon.getIntrinsicHeight()) / 2;
+                    int updateIconLeft = itemView.getLeft() + updateIconMargin;
+                    int updateIconRight = itemView.getLeft() + updateIconMargin + updateIcon.getIntrinsicWidth();
+                    int updateIconBottom = updateIconTop + updateIcon.getIntrinsicHeight();
+                    updateIcon.setBounds(updateIconLeft, updateIconTop, updateIconRight, updateIconBottom);
+                    updateIcon.draw(c);
+                }
             } else {
                 backgroundDelete.setBounds(itemView.getRight() + (int) dX, itemView.getTop(), itemView.getRight(), itemView.getBottom());
                 backgroundDelete.draw(c);
@@ -384,6 +392,7 @@ public class listcommand extends AppCompatActivity {
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
         }
     }
+
     private void showUpdateDialog(int position) {
         final EditText input = new EditText(listcommand.this);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);

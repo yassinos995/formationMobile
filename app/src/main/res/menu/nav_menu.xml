@@ -26,9 +26,9 @@
             android:title="Tests"/>
         <item
             android:id="@+id/nav_settings"
-            android:icon="@drawable/setting"
+            android:icon="@drawable/lockicon"
             android:textColor="@color/black"
-            android:title="Settings"/>
+            android:title="Change password"/>
         <item
             android:id="@+id/nav_share"
             android:icon="@drawable/share"

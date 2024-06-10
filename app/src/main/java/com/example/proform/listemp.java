@@ -328,6 +328,7 @@ public class listemp extends AppCompatActivity {
                                             if (error == null) {
                                                 userList.remove(userToDelete);
                                                 adapter.notifyItemRemoved(position);
+                                                adapter.notifyDataSetChanged();
                                                 firebaseUser.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
                                                     @Override
                                                     public void onComplete(@NonNull Task<Void> task) {
