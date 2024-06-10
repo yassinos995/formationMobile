@@ -220,10 +220,16 @@ public class listTests extends AppCompatActivity {
                     openListTestsActivity();
                     return true;
                 } else if (itemId == R.id.nav_info) {
-                    // openLogo();
+                    openInfo();
                     return true;
                 } else if (itemId == R.id.nav_share) {
-                    // shareApp();
+                    Intent myIntent = new Intent(Intent.ACTION_SEND);
+                    myIntent.setType("text/plain");
+                    String shareBody = "https://www.mediafire.com/file/mxvxo70h7kuu1um/TrackZone.apk/file";
+                    String shareSub = "EypCnn";
+                    myIntent.putExtra(Intent.EXTRA_SUBJECT, shareSub);
+                    myIntent.putExtra(Intent.EXTRA_TEXT, shareBody);
+                    startActivity(Intent.createChooser(myIntent, "Partager avec"));
                     return true;
                 } else if (itemId == R.id.nav_logout) {
                     logout();
@@ -234,6 +240,11 @@ public class listTests extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void openInfo() {
+        Intent intent = new Intent(listTests.this, info.class);
+        startActivity(intent);
     }
 
     private void openListTestsActivity() {

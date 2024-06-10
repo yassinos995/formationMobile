@@ -226,10 +226,16 @@ public class home extends AppCompatActivity {
                     openListTestsActivity();
                     return true;
                 } else if (itemId == R.id.nav_info) {
-                    openLogo();
+                    openInfo();
                     return true;
                 } else if (itemId == R.id.nav_share) {
-                    shareApp();
+                    Intent myIntent = new Intent(Intent.ACTION_SEND);
+                    myIntent.setType("text/plain");
+                    String shareBody = "https://www.mediafire.com/file/mxvxo70h7kuu1um/TrackZone.apk/file";
+                    String shareSub = "EypCnn";
+                    myIntent.putExtra(Intent.EXTRA_SUBJECT, shareSub);
+                    myIntent.putExtra(Intent.EXTRA_TEXT, shareBody);
+                    startActivity(Intent.createChooser(myIntent, "Partager avec"));
                     return true;
                 } else if (itemId == R.id.nav_logout) {
                     logout();
@@ -241,6 +247,12 @@ public class home extends AppCompatActivity {
             }
         });
     }
+
+    private void openInfo() {
+        Intent intent = new Intent(home.this, info.class);
+        startActivity(intent);
+    }
+
     public void openNotification(View view){
         Intent intent = new Intent(home.this, Notification.class);
         startActivity(intent);
@@ -303,10 +315,6 @@ public class home extends AppCompatActivity {
         } else {
             Toast.makeText(home.this, "User not authenticated", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private void shareApp() {
-        Toast.makeText(this, "Mazelna ma gadinahech", Toast.LENGTH_SHORT).show();
     }
 
     private void logout() {

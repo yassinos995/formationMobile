@@ -81,7 +81,7 @@
                     android:layout_marginTop="16dp"
                     android:padding="16dp"
                     android:textSize="16sp"
-                    android:textColor="#5c5f72"
+                    android:textColor="@color/black"
                     android:background="@drawable/editext_backgrounds"
                     android:layout_marginEnd="16dp" />
             </LinearLayout>

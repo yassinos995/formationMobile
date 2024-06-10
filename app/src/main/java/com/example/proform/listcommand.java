@@ -134,11 +134,17 @@ public class listcommand extends AppCompatActivity {
             } else if (itemId == R.id.nav_list_tests) {
                 openListTestsActivity();
                 return true;
-            } else if (itemId == R.id.nav_settings) {
-                return true;
-            } else if (itemId == R.id.nav_info) {
+            }  else if (itemId == R.id.nav_info) {
+                openInfo();
                 return true;
             } else if (itemId == R.id.nav_share) {
+                Intent myIntent = new Intent(Intent.ACTION_SEND);
+                myIntent.setType("text/plain");
+                String shareBody = "https://www.mediafire.com/file/mxvxo70h7kuu1um/TrackZone.apk/file";
+                String shareSub = "EypCnn";
+                myIntent.putExtra(Intent.EXTRA_SUBJECT, shareSub);
+                myIntent.putExtra(Intent.EXTRA_TEXT, shareBody);
+                startActivity(Intent.createChooser(myIntent, "Partager avec"));
                 return true;
             } else if (itemId == R.id.nav_logout) {
                 logout();
@@ -152,6 +158,11 @@ public class listcommand extends AppCompatActivity {
             navigationView.getMenu().findItem(R.id.nav_list_employers).setVisible(false);
             navigationView.getMenu().findItem(R.id.nav_list_tests).setVisible(false);
         }
+    }
+
+    private void openInfo() {
+        Intent intent = new Intent(listcommand.this, info.class);
+        startActivity(intent);
     }
 
     private void openSetting() {

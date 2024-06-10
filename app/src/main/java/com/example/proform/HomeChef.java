@@ -195,9 +195,16 @@ public class HomeChef extends AppCompatActivity {
                 openListTestsActivity();
                 return true;
             }else if (itemId == R.id.nav_info) {
+                openInfo();
                 return true;
             } else if (itemId == R.id.nav_share) {
-                shareApp();
+                Intent myIntent = new Intent(Intent.ACTION_SEND);
+                myIntent.setType("text/plain");
+                String shareBody = "https://www.mediafire.com/file/mxvxo70h7kuu1um/TrackZone.apk/file";
+                String shareSub = "EypCnn";
+                myIntent.putExtra(Intent.EXTRA_SUBJECT, shareSub);
+                myIntent.putExtra(Intent.EXTRA_TEXT, shareBody);
+                startActivity(Intent.createChooser(myIntent, "Partager avec"));
                 return true;
             } else if (itemId == R.id.nav_logout) {
                 logout();
@@ -208,6 +215,12 @@ public class HomeChef extends AppCompatActivity {
             }
         });
     }
+
+    private void openInfo() {
+        Intent intent = new Intent(HomeChef.this, info.class);
+        startActivity(intent);
+    }
+
     private void openSetting() {
         Intent intent = new Intent(HomeChef.this, setting.class);
         startActivity(intent);
