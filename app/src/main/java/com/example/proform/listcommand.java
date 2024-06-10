@@ -140,7 +140,7 @@ public class listcommand extends AppCompatActivity {
             } else if (itemId == R.id.nav_share) {
                 Intent myIntent = new Intent(Intent.ACTION_SEND);
                 myIntent.setType("text/plain");
-                String shareBody = "https://www.mediafire.com/file/mxvxo70h7kuu1um/TrackZone.apk/file";
+                String shareBody = "https://www.mediafire.com/file/2lexzz9fg61w60g/TrackZone1.apk/file";
                 String shareSub = "EypCnn";
                 myIntent.putExtra(Intent.EXTRA_SUBJECT, shareSub);
                 myIntent.putExtra(Intent.EXTRA_TEXT, shareBody);
