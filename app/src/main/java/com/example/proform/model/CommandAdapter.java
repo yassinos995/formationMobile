@@ -107,7 +107,6 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
                                     holder.btnRejected.setVisibility(View.GONE);
                                 }
                             } else {
-                                // Hide the buttons for other roles
                                 holder.btnCompleted.setVisibility(View.GONE);
                                 holder.btnRejected.setVisibility(View.GONE);
                             }
@@ -159,9 +158,7 @@ public class CommandAdapter extends RecyclerView.Adapter<CommandAdapter.ViewHold
             btnRejected = itemView.findViewById(R.id.btnRejected);
             cardView = itemView.findViewById(R.id.cardView);
 
-            // Disable item click by setting an empty click listener
             itemView.setOnClickListener(v -> {
-                // Do nothing on item click
             });
         }
     }

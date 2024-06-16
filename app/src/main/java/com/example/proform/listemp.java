@@ -124,7 +124,6 @@ public class listemp extends AppCompatActivity {
                                                     continue;
                                                 }
                                             }
-                                            // If none of the above conditions are met, add the user to the list
                                             userList.add(user);
                                         } else {
                                             Log.e("UserSnapshot", "Null values found in user object or its properties");
@@ -425,7 +424,7 @@ public class listemp extends AppCompatActivity {
     }
     private void openUpdate(User user) {
         Intent intent = new Intent(listemp.this, updatep.class);
-        intent.putExtra("user", user); // Pass the user object with the intent
+        intent.putExtra("user", user);
         startActivity(intent);
     }
     private void signInStoredUser() {

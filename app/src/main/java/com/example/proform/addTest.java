@@ -260,7 +260,6 @@ public class addTest extends AppCompatActivity {
                     String email = dataSnapshot.child("email").getValue(String.class);
                     String cin = dataSnapshot.child("cin").getValue(String.class);
                     String phone = dataSnapshot.child("phoneNumber").getValue(String.class);
-
                     emailText.setText(email);
                     cinText.setText(cin);
                     phoneText.setText(phone);
